@@ -1,0 +1,31 @@
+[project]
+name = "fastapi-project-1"
+version = "0.1.0"
+description = "My TO DO lists project FastAPI"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "fastapi>=0.128.0",
+    "numpy>=2.4.1",
+    "pydantic[email]>=2.12.5",
+    "pydentic[email]>=0.0.1.dev3",
+    "sqlalchemy>=2.0.46",
+    "sqlalchemy-orm>=1.2.10",
+    "typing>=3.10.0.0",
+    "uvicorn>=0.40.0",
+]
+
+[tool.ruff]
+# Самое важное: Ruff теперь знает, что корень кода в src
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["F", "I", "E", "W"]
+# игнорирование длины строки
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+# Помогает Ruff понимать, что ваши папки внутри src — это свои модули
+known-first-party = ["fastapi-project-1"] 
+
