@@ -103,14 +103,14 @@ async def get_users(session: SessionDep):
 #     return {"ok": True, "message": f"User with id {user_id_for_update} updated"}
 
 @router.patch(
-    "/users/{user_id_for_patch}",
+    "/users/{user_id}",
     tags=["Пользователи"],
     summary="Обновить часть данных пользователя",
     status_code=status.HTTP_200_OK,
     response_model=UserResponseSchema,
 ) # заменяет указанные свойства
 async def patch_user(
-    user_id_for_patch: int,
+    user_id: int,
     data: UserPatchSchema,
     session: SessionDep):
     """
@@ -120,7 +120,7 @@ async def patch_user(
     """
     query = (
         select(UsersORM)
-        .where(UsersORM.id_user == user_id_for_patch)
+        .where(UsersORM.id_user == user_id)
     ) # запрос на получение данных
     result = await session.execute(query) # выполнение запроса асинхронно
     user = result.scalar_one_or_none() # распаковка полученного кортежа в один объект
@@ -155,15 +155,15 @@ async def patch_user(
     return user
 
 @router.delete(
-    "/users/{user_id_for_delete}",
+    "/users/{user_id}",
     tags=["Пользователи"],
     summary="Удалить пользователя",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-async def delete_user(user_id_for_delete: int, session: SessionDep):
+async def delete_user(user_id: int, session: SessionDep):
     # query = (
     #     select(UsersORM)
-    #     .where(UsersORM.id_user == user_id_for_delete)
+    #     .where(UsersORM.id_user == user_id)
     # )
 
     # result = await session.execute(query)
@@ -176,7 +176,7 @@ async def delete_user(user_id_for_delete: int, session: SessionDep):
 
     query = (
         delete(UsersORM)
-        .where(UsersORM.id_user == user_id_for_delete)
+        .where(UsersORM.id_user == user_id)
         .returning(UsersORM.id_user)
     ) # прямой запрос на удаление пользователя
 
@@ -190,5 +190,4 @@ async def delete_user(user_id_for_delete: int, session: SessionDep):
 
     await session.commit()
     return None
-
 

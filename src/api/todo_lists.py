@@ -105,21 +105,21 @@ async def get_lists(
 
 
 @router.patch(
-    "/users/{id_user_of_list}/todo_lists/{id_list_for_patch}",
+    "/users/{id_user}/todo_lists/{id_list_for_patch}",
     tags=["Листы"],
     summary="Обновить часть данных листа задач",
     status_code=status.HTTP_200_OK,
     response_model=ListResponseSchema,
 )
 async def patch_list(
-    id_user_of_list: int,
-    id_list_for_patch: int,
+    id_user: int,
+    id_list: int,
     data: ListPatchSchema,
     session: SessionDep,
 ):
     query = select(ListsORM).where(
-        ListsORM.id_list == id_list_for_patch,
-        ListsORM.user_id == id_user_of_list,
+        ListsORM.id_list == id_list,
+        ListsORM.user_id == id_user,
     )
     result = await session.execute(query)
     lst = result.scalar_one_or_none()
@@ -141,19 +141,19 @@ async def patch_list(
 
 
 @router.delete(
-    "/users/{id_user_of_list}/todo_lists/{id_list_for_delete}",
+    "/users/{id_user}/todo_lists/{id_list_for_delete}",
     tags=["Листы"],
     summary="Удалить лист задач",
     status_code=status.HTTP_204_NO_CONTENT
 )
 async def delete_list(
-    id_user_of_list: int,
-    id_list_for_delete: int,
+    id_user: int,
+    id_list: int,
     session:SessionDep,
 ):
     # query = select(ListsORM).where(
-    #     ListsORM.id_list == id_list_for_delete,
-    #     ListsORM.user_id == id_user_of_list,
+    #     ListsORM.id_list == id_list,
+    #     ListsORM.user_id == id_user,
     # )
     # result = await session.execute(query)
     # lst = result.scalar_one_or_none()
@@ -168,8 +168,8 @@ async def delete_list(
     query = (
         delete(ListsORM)
         .where(
-            ListsORM.id_list == id_list_for_delete,
-            ListsORM.user_id == id_user_of_list)
+            ListsORM.id_list == id_list,
+            ListsORM.user_id == id_user)
         .returning(ListsORM.id_list)
     )
     result = await session.execute(query)
