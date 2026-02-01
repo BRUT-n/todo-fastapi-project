@@ -1,5 +1,5 @@
 [project]
-name = "fastapi-project-1"
+name = "todo-app-project"
 version = "0.1.0"
 description = "My TO DO lists project FastAPI"
 readme = "README.md"
