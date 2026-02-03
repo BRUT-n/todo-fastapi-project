@@ -12,13 +12,7 @@ from src.schemas.todo_schemas import (
 
 router = APIRouter()
 
-@router.post(
-    "/users/{id_user}/todo_lists", # доступ к листу по идентификатору пользователя
-    tags=["Листы"],
-    summary="Добавить лист задач для указанного пользователя",
-    status_code=status.HTTP_201_CREATED,
-    response_model=ListResponseSchema,
-    )
+
 async def add_todo_lists(
     id_user: int,
     lst: ListAddSchema,
@@ -51,13 +45,7 @@ async def add_todo_lists(
     #     }
 
 
-@router.get(
-    "/users/{id_user}/todo_lists",
-    tags=["Листы"],
-    summary="Показать все листы задач указанного пользователя",
-    status_code=status.HTTP_200_OK,
-    response_model=list[ListResponseSchema], # вернуть список схем, тк листов несколько
-)
+
 async def get_lists(
     id_user: int,
     session: SessionDep,
@@ -104,13 +92,7 @@ async def get_lists(
 #     return lst
 
 
-@router.patch(
-    "/users/{id_user}/todo_lists/{id_list}",
-    tags=["Листы"],
-    summary="Обновить часть данных листа задач",
-    status_code=status.HTTP_200_OK,
-    response_model=ListResponseSchema,
-)
+
 async def patch_list(
     id_user: int,
     id_list: int,
@@ -140,12 +122,7 @@ async def patch_list(
     return lst
 
 
-@router.delete(
-    "/users/{id_user}/todo_lists/{id_list_for_delete}",
-    tags=["Листы"],
-    summary="Удалить лист задач",
-    status_code=status.HTTP_204_NO_CONTENT
-)
+
 async def delete_list(
     id_user: int,
     id_list: int,
