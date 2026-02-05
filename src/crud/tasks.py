@@ -1,7 +1,8 @@
 
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
-from src.api.dependencies import SessionDep
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.models.todo_models import ListsORM, TasksORM, UsersORM
 from src.schemas.todo_schemas import (
     TaskAddSchema,
@@ -17,7 +18,7 @@ async def add_task(
     id_user: int,
     id_list: int,
     tsk: TaskAddSchema,
-    session: SessionDep,
+    session: AsyncSession,
 ):
     query = select(ListsORM).where(
         ListsORM.user_id == id_user,
@@ -47,7 +48,7 @@ async def add_task(
 async def get_all_tasks(
     id_user: int,
     id_list: int,
-    session: SessionDep
+    session: AsyncSession
 ):
     query = (
         select(TasksORM)
@@ -73,7 +74,7 @@ async def get_all_tasks(
 # async def update_task(
 #     id_task_to_update: int,
 #     data: TaskUpdateSchema,
-#     session: SessionDep,
+#     session: AsyncSession,
 # ):
 #     query = select(TasksORM).where(TasksORM.id_task == id_task_to_update)
 #     result = await session.execute(query)
@@ -92,13 +93,12 @@ async def get_all_tasks(
 #     return tsk
 
 
-
 async def patch_task(
     id_task: int,
     id_user: int,
     id_list: int,
     data: TaskPatchSchema,
-    session: SessionDep,
+    session: AsyncSession,
 ):
     query = (
         select(TasksORM)
@@ -128,7 +128,7 @@ async def delete_task(
     id_task: int,
     id_user: int,
     id_list: int,
-    session: SessionDep
+    session: AsyncSession
 ):
     query = (
         select(TasksORM)

@@ -1,7 +1,8 @@
 
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.models.todo_models import ListsORM, UsersORM
 from src.schemas.todo_schemas import (
     ListAddSchema,
@@ -43,7 +44,6 @@ async def add_todo_lists(
     #         "todo_list_id": new_lst.id_list, # возвращает присвоенные айди из базы
     #         "Relationship with user_id": new_lst.user_id # возвращает присвоенные айди из ввода пользователя
     #     }
-
 
 
 async def get_lists(
@@ -92,7 +92,6 @@ async def get_lists(
 #     return lst
 
 
-
 async def patch_list(
     id_user: int,
     id_list: int,
@@ -120,7 +119,6 @@ async def patch_list(
     await session.refresh(lst)
 
     return lst
-
 
 
 async def delete_list(
@@ -160,4 +158,3 @@ async def delete_list(
     await session.commit()
 
     return None
-

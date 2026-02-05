@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select, delete
-from sqlalchemy.ext.asyncio import AsyncSession 
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.database import Base, engine
 from src.models.todo_models import UsersORM
 from src.schemas.todo_schemas import (
@@ -56,6 +57,7 @@ async def get_users(session: AsyncSession):
 
     users = result.scalars().all() # scalars() распаковывает кортежи для удобства чтения и доступа через срезы
     return users
+
 
 # @router.put("/users/{user_id}", tags=["Пользователи"], summary="Обновить все данные пользователя", status_code=status.HTTP_200_OK) # заменяет все свойства
 # async def update_user(user_id_for_update: int, data: UserUpdateSchema, session: SessionDep):
@@ -157,4 +159,3 @@ async def delete_user(user_id: int, session: AsyncSession):
 
     await session.commit()
     return None
-

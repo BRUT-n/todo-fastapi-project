@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
+
 from src.api.dependencies import SessionDep
+from src.crud import users as users_crud
 from src.database import Base, engine
 from src.models.todo_models import UsersORM
 from src.schemas.todo_schemas import (
@@ -9,11 +11,6 @@ from src.schemas.todo_schemas import (
     UserResponseSchema,
     UserUpdateSchema,
 )
-from src.crud.users import add_user as add_user_crud
-from src.crud.users import get_users as get_user_crud
-from src.crud.users import patch_user as patch_user_crud
-from src.crud.users import delete_user as delete_user_crud
-
 
 router = APIRouter()
 
@@ -34,8 +31,11 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     response_model=UserResponseSchema,
     )
-async def create_user(user_in: UserAddSchema, session: SessionDep):
-    new_user = await add_user_crud(user=user_in, session=session)
+async def create_user(
+    user_in: UserAddSchema,
+    session: SessionDep
+):
+    new_user = await users_crud.add_user(user=user_in, session=session)
     return new_user
 
 
@@ -47,8 +47,9 @@ async def create_user(user_in: UserAddSchema, session: SessionDep):
     response_model=list[UserResponseSchema] # лист потому что вывод на несколько юзеров
     )
 async def get_users(session: SessionDep):
-    users = await get_user_crud(session=session)
+    users = await users_crud.get_users(session=session)
     return users
+
 
 @router.patch(
     "/users/{user_id}",
@@ -57,9 +58,18 @@ async def get_users(session: SessionDep):
     status_code=status.HTTP_200_OK,
     response_model=UserResponseSchema,
 ) # заменяет указанные свойства
-async def patch_user(user_id: int, data: UserPatchSchema, session: SessionDep):
-    patched_user = await patch_user_crud(user_id=user_id, data=data, session=session)
+async def patch_user(
+    user_id: int,
+    data: UserPatchSchema,
+    session: SessionDep
+):
+    patched_user = await users_crud.patch_user(
+        user_id=user_id,
+        data=data,
+        session=session
+    )
     return patched_user
+
 
 @router.delete(
     "/users/{user_id}",
@@ -68,6 +78,8 @@ async def patch_user(user_id: int, data: UserPatchSchema, session: SessionDep):
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_user(user_id: int, session: SessionDep):
-    result = await delete_user_crud(user_id=user_id, session=session)
+    result = await users_crud.delete_user(
+        user_id=user_id,
+        session=session
+    )
     return result
-
