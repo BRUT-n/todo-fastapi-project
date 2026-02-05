@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select, delete
-# from src.api.dependencies import SessionDep
 from sqlalchemy.ext.asyncio import AsyncSession 
 from src.database import Base, engine
 from src.models.todo_models import UsersORM

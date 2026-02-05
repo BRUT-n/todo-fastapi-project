@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import delete, select
-from src.api.dependencies import SessionDep
+from sqlalchemy.ext.asyncio import AsyncSession 
 from src.models.todo_models import ListsORM, UsersORM
 from src.schemas.todo_schemas import (
     ListAddSchema,
@@ -16,7 +16,7 @@ router = APIRouter()
 async def add_todo_lists(
     id_user: int,
     lst: ListAddSchema,
-    session: SessionDep
+    session: AsyncSession
 ):
     user = await session.get(UsersORM, id_user)
     if user is None: # существование пользователя проеверяется
@@ -48,7 +48,7 @@ async def add_todo_lists(
 
 async def get_lists(
     id_user: int,
-    session: SessionDep,
+    session: AsyncSession,
 ):
     query = select(ListsORM).where(ListsORM.user_id == id_user)
     result = await session.execute(query)
@@ -67,7 +67,7 @@ async def get_lists(
 #     id_user_of_list: int,
 #     id_list_for_update: int,
 #     data: ListUpdateSchema,
-#     session: SessionDep,
+#     session: AsyncSession,
 # ):
 #     query = select(ListsORM).where(
 #         ListsORM.user_id == id_user_of_list,
@@ -97,7 +97,7 @@ async def patch_list(
     id_user: int,
     id_list: int,
     data: ListPatchSchema,
-    session: SessionDep,
+    session: AsyncSession,
 ):
     query = select(ListsORM).where(
         ListsORM.id_list == id_list,
@@ -126,7 +126,7 @@ async def patch_list(
 async def delete_list(
     id_user: int,
     id_list: int,
-    session:SessionDep,
+    session:AsyncSession,
 ):
     # query = select(ListsORM).where(
     #     ListsORM.id_list == id_list,
