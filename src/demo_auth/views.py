@@ -16,12 +16,16 @@ router = APIRouter(prefix="/demo-auth", tags=["Demo Auth"]) # отдельная
 security = HTTPBasic() # экземпляр класса, говорит FastAPI проверить заголовок Authorization - если пусто то сразу 401
 # после 401 выдает окно авторизации для ввода логин/пароль
 
-@router.get("/basic-auth")
+@router.get("/basic-auth-with-any-credentials")
 def demo_basic_credentials(
     # Annotated говорит: переменная 'credentials' имеет тип 'HTTPBasicCredentials',
     # а получить её нужно через зависимость 'security' перед тем как запустить функцию
     credentials: Annotated[HTTPBasicCredentials, Depends(security)]
 ):
+    """
+    Запуск ручки только с указанием любых логин/пароль.
+    В ответе сообщение HI и указанные данные при авторизации.
+    """
     # Если мы попали сюда, значит FastAPI уже проверил наличие заголовка.
     # Если заголовка не было, клиент получил 401 автоматически, код ниже не выполнится.
     return {
@@ -29,7 +33,6 @@ def demo_basic_credentials(
         "username": credentials.username,
         "password": credentials.password,
     }
-
 
 
 # Имитация базы данных пользователей
@@ -43,7 +46,7 @@ def get_auth_user_username(
     # Она сама зависит от 'security', то есть сначала достает данные из заголовка
     credentials: Annotated[HTTPBasicCredentials, Depends(security)]
 ):
-    # Заранее готовим ошибку, которую будем выкидывать при неудаче
+    # Заранее готовим ошибку, чтобы поднимать ее вне зависимости от ошибок (логина или пароля)
     unauthed_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid username or password",
@@ -54,7 +57,7 @@ def get_auth_user_username(
     # Пытаемся найти пароль для введенного имени пользователя
     correct_password = usernames_to_password.get(credentials.username)
 
-    # Если такого пользователя нет — прерываем выполнение и отдаем 401
+    # Если такого пользователя нет — прерываем выполнение и отдаем подготовленную ошибку
     if correct_password is None:
         raise unauthed_exc
 
@@ -71,13 +74,16 @@ def get_auth_user_username(
     return credentials.username
 
 
-@router.get("/basic-auth-username")
+@router.get("/basic-auth-check-correct-credentials") # можно указывать логин/пароль в адресной строке через :
 def demo_basic_auth_username(
     # Здесь магия Depends: FastAPI видит, что нам нужно 'auth_username'.
     # Он запускает 'get_auth_user_username', та запускает 'security'.
     # Если вся цепочка прошла успешно, мы получаем строку с именем пользователя.
     auth_username: str = Depends(get_auth_user_username),
 ):
+    """
+    Проверка пользователя и его логина с паролем, согласно сделанной базе.
+    """
     # К этому моменту пользователь ГАРАНТИРОВАННО прошел проверку.
     # Нам не нужно писать if-else внутри этой функции.
     return {
@@ -105,16 +111,21 @@ def get_username_by_static_auth_token( # фукнция проверки на с
     )
 
 
-@router.get("/some-http-header-auth")
+@router.get("/some-http-header-auth") # нельзя указывать логин/пароль в адресной строке, тк авторизация именно по заголовку
 def demo_auth_some_http_header(
     username: str = Depends(get_username_by_static_auth_token),
 ):
+    """
+    Данные для авторизации идут из заголовка указанного в функции
+    """
     # К этому моменту пользователь ГАРАНТИРОВАННО прошел проверку.
     # Нам не нужно писать if-else внутри этой функции.
     return {
         "message": f"Hi, {username}",
         "username": username,
     }
+
+
 
 '''
 Запрос: Пользователь заходит на /login-cookie и вводит пароль.
@@ -126,32 +137,29 @@ def demo_auth_some_http_header(
 Сервер заглянет в свой словарь COOKIES, увидит там xyz и сразу поймет 
 — это Ivan, пароль спрашивать снова не нужно!
 '''
-# сюда записывается уникальынй айди : словарь указанных данных
+# сюда записывается айди : словарь указанных данных
 COOKIES: dict[str, dict[str, Any]] = {} # словарь с аннотацией для хранения кук, хранится в оперативке
+# Ключом будет session_id (случайная строка), а значением — данные пользователя (кто это и когда зашел).
 
-COOKIE_SESSION_ID_KEY = "web-app-session-id" # имя кук, их видит и запоминает браузер
+COOKIE_SESSION_ID_KEY = "web-app-session-id" # имя кук как их запишет браузер, их видит и запоминает браузер
 # при обрачении к сайт, сайт просит у браузера то, что он запомнил и сверяет с пользователями
 
-def generate_session_id() -> str: # случайная генерация айди сессии
+def generate_session_id() -> str:
+    "Случайная генерация айди сессии"
     return uuid.uuid4().hex
 
-def get_session_data(
-    session_id: str = Cookie(alias=COOKIE_SESSION_ID_KEY), # смотрит в cookies, ищет web-app-session-id, кладёт значение в session_id
-):
-    if session_id not in COOKIES: # если  нет в куках - пользователь не авторизован
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="not authenticated"
-        )
 
-    return COOKIES[session_id]
 
 @router.get("/login-cookie")
 def demo_auth_login_set_cookies(
-    response: Response, # Response это заготовка - будет ответ на базе класса с нужными данными
+    response: Response, # Response это заготовка (как конверт) - будет ответ на базе класса с нужными данными
     auth_username: str = Depends(get_auth_user_username), # можно выбирать методы логина через зависимости функций выше
     # username: str = Depends(get_username_by_static_auth_token),
 ):
+    """
+    Используя зависимость функции авторизации записывает в куки
+    сессия_ид : данные__вида_респонс(логин, время)
+    """
     session_id = generate_session_id()
     COOKIES[session_id] = { # запись данных(какие нужны) в словарь для кук
         "username": auth_username,
@@ -160,10 +168,29 @@ def demo_auth_login_set_cookies(
     response.set_cookie(COOKIE_SESSION_ID_KEY, session_id) # в ответе команда браузеру запомнить ключ со значением из ответа
     return {"ok":"true"}
 
+
+def get_session_data(
+    session_id: str = Cookie(alias=COOKIE_SESSION_ID_KEY), # смотрит в cookies, ищет web-app-session-id, кладёт значение в session_id
+):
+    """
+    Проверка авторизации через обращение к базе с куками.
+    """
+    if session_id not in COOKIES: # если  нет в куках - пользователь не авторизован
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="not authenticated"
+        )
+
+    return COOKIES[session_id]
+
+
 @router.get("/check-cookie")
 def demo_auth_check_cookie(
     user_session_data: dict = Depends(get_session_data), # если код дошел сюда, есть валидные куки, пользов-ль аутент-н
 ):
+    """
+    Через зависимость вытаскиевает данные пользователя (по ид сессии) из базы с куками.
+    """
     username = user_session_data["username"] # вытаскивается имя
     return {
         "message": f"Hello, {username}",
@@ -176,9 +203,12 @@ def demo_auth_logout_cookie(
     session_id: str = Cookie(alias=COOKIE_SESSION_ID_KEY),
     user_session_data: dict = Depends(get_session_data),
 ):
+    """
+    Удаление куков имея ключ сессии(sessin_id). И выводит какого пользователя удалили через зависимость от get_session_data.
+    """
     COOKIES.pop(session_id) # удаление сессии на сервере
-    response.delete_cookie(COOKIE_SESSION_ID_KEY) # команда браузеру "удали куки"
+    response.delete_cookie(COOKIE_SESSION_ID_KEY) # команда браузеру "удали куки", для этого нужен Response
     username = user_session_data["username"]
     return {
-        "message": f"By, {username}",
+        "message": f"BB, {username}",
     }
