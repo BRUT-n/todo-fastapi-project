@@ -78,3 +78,12 @@ class TaskResponseSchema(BaseModel):
     list_id: int
 
     model_config=ConfigDict(from_attributes=True)
+
+# модель для авторизации
+class UserAuthSchema(BaseModel):
+    model_config = ConfigDict(strict=True) # Чтобы исключить любые двусмысленности
+
+    username: str
+    password: bytes
+    email: EmailStr | None = None
+    active: bool = True
