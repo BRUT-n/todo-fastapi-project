@@ -7,7 +7,7 @@ from fastapi import (  # для формы нужен python-multipart
 )
 from fastapi.security import (
     HTTPAuthorizationCredentials,
-    HTTPBearer,  # поиск токена типа Bearer
+    HTTPBearer,  # поиск токена типа Bearer в загаловке запроса
     OAuth2PasswordBearer,  # упрощенный вариант выпуска токена
 )
 from jwt.exceptions import InvalidTokenError
@@ -17,7 +17,7 @@ from src.auth import utils as auth_utils
 from src.schemas.todo_schemas import UserAuthSchema
 
 # http_bearer = HTTPBearer() # помогает вытащить из заголовка авторизации тип Bearer
-oauth2_scheme = OAuth2PasswordBearer( # выпускает точек используя адрес сам
+oauth2_scheme = OAuth2PasswordBearer( # выпускает токен используя адрес сам
     tokenUrl="/demo_jwt/login"
 )
 
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/demo_jwt", tags=["JWT"])
 
 john = UserAuthSchema(
     username="John",
-    password=auth_utils.hash_password("qwerty"),
+    password=auth_utils.hash_password("qwerty"), # сразу хеширование пароля в байтах (т.к. функция отдает в байтах)
     email="john@example.com",
     active=True,
 )
@@ -47,25 +47,26 @@ users_db: dict[str, UserAuthSchema] = {
 }
 
 def validate_auth_user(
-    username: str = Form(),
+    username: str = Form(), # Form для совместимости с OAuth2 и работы с кнопкой "Authorize" в Swagger
     password: str = Form(),
 
 ):
     """
-    Функция для заполнения формы юзером
+    Функция для заполнения формы юзером, проверки аутентфикации и статуса аккаунта.
     """
-    unauthed_exc = HTTPException(
+    unauthed_exc = HTTPException( # одна и та же ошибка под разные сценарии для защиты от перебора
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid username or password"
     )
-    if not (user := users_db.get(username)):
+    if not (user := users_db.get(username)): # если НЕ (пользователь = юзернейм из базы)
         raise unauthed_exc
 
-    if not auth_utils.validate_password(
-        password=password,
-        hashed_password=user.password,
+    if not auth_utils.validate_password( # проверка пароля: совпадение полученного и хешированного
+        password=password, # полученый пароль становится хешем через bcrypt
+        hashed_password=user.password, # пароль из базы (в байтах) для сравнения с полученным
     ):
         raise unauthed_exc
+
     if not user.active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -76,7 +77,7 @@ def validate_auth_user(
 
 def get_current_token_payload(
     # creds: HTTPAuthorizationCredentials = Depends(http_bearer),
-    token: str = Depends(oauth2_scheme),
+    token: str = Depends(oauth2_scheme), # иной протокол извлечения токена
 
 ):
     """

@@ -81,9 +81,9 @@ class TaskResponseSchema(BaseModel):
 
 # модель для авторизации
 class UserAuthSchema(BaseModel):
-    model_config = ConfigDict(strict=True) # Чтобы исключить любые двусмысленности
+    model_config = ConfigDict(strict=True) # Строго ограничение, чтобы не принимал иные данные и не пытался их привести в нужные
 
     username: str
-    password: bytes
+    password: bytes # обычно в виде строки, но это реализовано дополнительно в коде
     email: EmailStr | None = None
     active: bool = True
