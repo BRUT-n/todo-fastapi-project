@@ -18,7 +18,7 @@ from src.schemas.todo_schemas import UserAuthSchema
 
 # http_bearer = HTTPBearer() # помогает вытащить из заголовка авторизации тип Bearer
 oauth2_scheme = OAuth2PasswordBearer( # выпускает токен используя адрес сам
-    tokenUrl="/demo_jwt/login"
+    tokenUrl="/demo_jwt/login" # адрес, где выпускается токен
 )
 
 class TokenInfo(BaseModel): # схема для response в ответе на запрос
@@ -76,59 +76,63 @@ def validate_auth_user(
     return user
 
 def get_current_token_payload(
-    # creds: HTTPAuthorizationCredentials = Depends(http_bearer),
-    token: str = Depends(oauth2_scheme), # иной протокол извлечения токена
-
+    # creds: HTTPAuthorizationCredentials = Depends(http_bearer), # не привязан к url, а просто берет введенный токен (как на гите)
+    token: str = Depends(oauth2_scheme), # протокол извлечения токена с привязкой к url (не нужно самому его вытаскивать, берется из url)
 ):
     """
-    Берет токен из заголовка запроса
-    Декодирует токен и возвращает полезную нагрузку
+    Берет токен либо из заголовка (HTTPBearer), неважно откуда он приходит.
+    Либо по указанному url (oauth2_scheme), важна работа с формой логина (username+password) чтобы выпустить токен.
+    Декодирует токен и возвращает полезную нагрузку (айди, имя, время логина и тд)
     """
-    # token = creds.credentials # вытаскиевает токен используя http_bearer
+    # token = creds.credentials # вытаскивает токен используя http_bearer
     try:
         payload = auth_utils.decode_jwt(
             encoded_token=token,
         )
-    except InvalidTokenError as e:
+    except InvalidTokenError as error: # ловит ошибки токена (срок, не валидный, формат не JSON)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token error: {e}",
+            detail=f"Invalid token error: {error}", # явно показывает ошибку - не безопасно в реальности
         )
-    return payload
+    return payload # возврат раскодированных данных пользователя (что было зашито в токен)
 
 def get_current_auth_user(
     payload: dict = Depends(get_current_token_payload),
 ) -> UserAuthSchema:
     """
-    Поиск юзернейма в полученном токене и возврат его из функции
+    Получает токен из инъекции зависимости и работает с ним.
+    Поиск в токене уникального "sub" - первая проверка.
+    Поиск в базе по "sub" конкретного пользователя - вторая проверка.
+    Если все проверено успешно возвращает данные пользователя по схеме.
     """
     invalid_token = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Token invalid (user not found)",
     )
 
-    username = payload.get("sub") # проверка наличия в токене поля имени
-    if not username:
-        raise invalid_token
+    username_id = payload.get("sub") # проверка наличия в токене поля имени Subject по стандарту (обязательное и уникальное)
+    if not username_id:
+        raise invalid_token # если в токене зашит неверный айди, то токен не принят
 
-    user = users_db.get(username) # проверка наличия имени в БД
+    user = users_db.get(username_id)  # проверка на актуальность (проверяет в БД) чтобы исключить ситуации - токен есть, но из базы уже удален юзер
     if not user:
-        raise invalid_token
+        raise invalid_token # если токен имеет верный айди, но в базе нет юзера с таким айди (удален, заблокирован) - токен не принят
 
-    return user
+    return user # возврат полных данный пользователя (как условное окно "мой профиль") согласно указанной схеме
 
 
 def get_current_active_auth_user(
     user: UserAuthSchema = Depends(get_current_auth_user),
 ):
     """
-    Получая пользователя проверяется его активация
+    Получает всю информацию (схему) о пользователе из зависимости.
+    Проверяет его статус - активен/не активен.
     """
-    if user.active:
+    if user.active: # вытаскивает из схемы поле актива - тру/фолс
         return user
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
-        detail="user inactive"
+        detail="User inactive"
     )
 
 
@@ -138,7 +142,7 @@ def auth_user_issue_jwt(
 ):
     jwt_payload = {
         # "subject": user.id,  надо будет связать айди из БД
-        "sub": user.username,
+        "sub": user.username, # примерный вариант заполнения
         "username": user.username,
         "email": user.email,
         # "logged_in_at":

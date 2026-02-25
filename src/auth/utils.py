@@ -13,7 +13,7 @@ from src.auth.config import auth_config
 def encode_jwt(
     payload: dict,
     private_key: str = auth_config.private_key_path.read_text(), # читает текст ключа из пути (один раз - статически)
-    algorithm: str = auth_config.algorithm,
+    algorithm: str = auth_config.algorithm, # алгоритм шифрования
     expire_minutes: int = auth_config.access_token_expire_minutes, # стандартно по схеме в классе
     expire_time_delta: timedelta | None = None # опционально можно указать нужное время. timedelta - по сути это отрезок времени
 ):
