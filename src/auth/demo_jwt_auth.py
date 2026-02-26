@@ -136,31 +136,39 @@ def get_current_active_auth_user(
     )
 
 
-@router.post("/login", response_model=TokenInfo)
+@router.post(
+    "/login",
+    response_model=TokenInfo,
+    summary="Проверяет валидность данных через зависимости и выдает готовый токен")
 def auth_user_issue_jwt(
     user: UserAuthSchema = Depends(validate_auth_user),
 ):
+    # определение того, что зашивать в токен (важно не перегружать данными) из объекта user
     jwt_payload = {
         # "subject": user.id,  надо будет связать айди из БД
         "sub": user.username, # примерный вариант заполнения
         "username": user.username,
         "email": user.email,
         # "logged_in_at":
+        # "roles":
     }
-    token = auth_utils.encode_jwt(jwt_payload)
-    return TokenInfo(
+    token = auth_utils.encode_jwt(jwt_payload) # создание токена через подготовленную функцию
+    return TokenInfo( # возврат модели по определенной выше схеме. тут вставлен и токен и его тип
         access_token=token,
         token_type="Bearer",
     )
 
-@router.get("/users/me")
+@router.get(
+    "/users/me",
+    summary="Через зависимости берет и выводит данные пейлоад и так же выводит данные о пользователе из базы"
+    )
 def auth_user_check_self_info(
-    payload: dict = Depends(get_current_token_payload), # берется кешированный пейлоад
-    user: UserAuthSchema = Depends(get_current_active_auth_user),
+    payload: dict = Depends(get_current_token_payload),
+    user: UserAuthSchema = Depends(get_current_active_auth_user), # берется кешированный пейлоад, так как уже записан из другой фунции
 ):
-    iat = payload.get("iat")
+    iat = payload.get("iat") # вытаскиевает данные текущей сессии (когда был логин)
     return {
         "username": user.username,
         "email": user.email,
         "logged_in_at": iat,
-    }
+    } # возвращает данные из БД (имя, мейл) и данные сессии (когда зашел)
