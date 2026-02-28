@@ -1,4 +1,4 @@
-from pathlib import Path # библиотека для работы с путями системы
+from pathlib import Path  # библиотека для работы с путями системы
 
 from pydantic import BaseModel
 
