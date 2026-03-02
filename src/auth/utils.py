@@ -17,9 +17,9 @@ def hash_password(
 ) -> bytes:
     """
     Хеширует пароль.
-    gensalt - генерация в количестве 14 раз
-    encode - перевод пароля в байты
-    hashpw - хеширование
+    gensalt - генерация в количестве 14 раз.
+    encode - перевод пароля в байты.
+    hashpw - хеширование.
     """
     salt = bcrypt.gensalt(rounds=14)
     password_to_bytes = password.encode()
@@ -48,7 +48,7 @@ def encode_jwt_token(
 ):
     """
     Создает токен.
-    payload - какую инф-ю вкладывать в токен
+    payload - какую информацию вкладывать в токен.
     """
     encoded_payload = payload.copy()
     now = datetime.now(tz=timezone.utc)
