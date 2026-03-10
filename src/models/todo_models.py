@@ -13,7 +13,7 @@ class UsersORM(Base):
     name: Mapped[str] = mapped_column(String(32)) # валидация длины
     email:Mapped[str] = mapped_column(String(32), unique=True, nullable=False) # уникальность емейла
     # email: Mapped[str | None] = mapped_column(String(32), nullable=True) #EmailStr | None # валидация эмейла или пусто - НЕВЕРНО, ВАЛИДАЦИЯ ЧЕРЕЗ ПАЙДЕНТИК ТОЛЬКО В СХЕМАХ АПИ
-    hached_password: Mapped[bytes] = mapped_column(nullable=False) # поле для хранения хеша пароля
+    hashed_password: Mapped[bytes] = mapped_column(nullable=False) # поле для хранения хеша пароля
 
     user_lists: Mapped[list["ListsORM"]] = relationship(back_populates="user") # НЕ КОЛОНКА, А СВЯЗЬ!
     # связь: один пользователь -> много списков (поэтому принимает список)

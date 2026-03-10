@@ -21,7 +21,7 @@ def hash_password(
     encode - перевод пароля в байты.
     hashpw - хеширование.
     """
-    salt = bcrypt.gensalt(rounds=14)
+    salt = bcrypt.gensalt(rounds=14) # можно перенести в модуль настроек, так же как и константы
     password_to_bytes = password.encode()
     return bcrypt.hashpw(password_to_bytes, salt)
 
