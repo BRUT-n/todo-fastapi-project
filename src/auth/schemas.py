@@ -23,10 +23,10 @@ class TokenPayload(BaseModel):
     exp: int
 
 # модель для авторизации
-# class UserAuthSchema(BaseModel):
-#     model_config = ConfigDict(strict=True) # Строго ограничение, чтобы не принимал иные данные и не пытался их привести в нужные
+class UserAuthSchema(BaseModel):
+    model_config = ConfigDict(strict=True) # Строго ограничение, чтобы не принимал иные данные и не пытался их привести в нужные
 
-#     username: str
-#     password: bytes # обычно в виде строки, но это реализовано дополнительно в коде
-#     email: EmailStr | None = None
-#     active: bool = True
+    # name: str
+    email: EmailStr
+    password: bytes # обычно в виде строки, но это реализовано дополнительно в коде
+    # active: bool = True

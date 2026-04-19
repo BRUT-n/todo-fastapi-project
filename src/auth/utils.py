@@ -41,9 +41,9 @@ def validate_password(
 
 def encode_jwt_token(
     payload: dict,
-    private_key: str,
-    algorithm: str,
-    expire_minutes: int,
+    private_key: str = PRIVATE_KEY,
+    algorithm: str = ALGORITHM,
+    expire_minutes: int = 5,
     expire_time_delta: timedelta | None = None,
 ):
     """

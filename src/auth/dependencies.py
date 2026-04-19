@@ -1,17 +1,14 @@
-from os import stat
 import jwt
-from fastapi import Depends, HTTPException, status, Form
+from fastapi import Depends, Form, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import EmailStr
 from sqlalchemy import select
-from sqlalchemy.engine import result
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import query
 
 from src.auth import utils as auth_utils
+from src.auth.schemas import UserRegisterSchema
 from src.database import get_session
 from src.models.todo_models import UsersORM
-from src.auth.schemas import UserRegisterSchema
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
@@ -55,15 +52,18 @@ async def validate_auth_user(
 
     query = select(UsersORM).where(UsersORM.email == email)
     result = await session.execute(query)
-    user = result.scalar_one_or_none
+    user = result.scalar_one_or_none()
 
     if not user:
         raise unauth_error
-    
+
     if not auth_utils.validate_password(
         password=password,
         hashed_password=user.hashed_password
-    )
+    ):
+        raise unauth_error
+
+    return user
 
 
 async def get_current_token_payload(

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
+from pydantic import EmailStr
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -159,3 +160,4 @@ async def delete_user(user_id: int, session: AsyncSession):
 
     await session.commit()
     return None
+
