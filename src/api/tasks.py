@@ -4,9 +4,9 @@ from sqlalchemy import TableSample, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.dependencies import SessionDep
-from src.crud import tasks as tasks_crud
-from src.models.todo_models import ListsORM, TasksORM, UsersORM
-from src.schemas.todo_schemas import (
+from src.database.crud import tasks as tasks_crud
+from src.database.tabels import ListsORM, TasksORM, UsersORM
+from src.models.schemas import (
     TaskAddSchema,
     TaskPatchSchema,
     TaskResponseSchema,

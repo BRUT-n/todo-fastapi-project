@@ -14,7 +14,7 @@ from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
 from src.demo_auth_advanced import utils as auth_utils
-from src.schemas.todo_schemas import UserAuthSchema
+from src.models.schemas import UserAuthSchema
 
 # http_bearer = HTTPBearer() # помогает вытащить из заголовка авторизации тип Bearer
 oauth2_scheme = OAuth2PasswordBearer( # выпускает токен используя адрес сам

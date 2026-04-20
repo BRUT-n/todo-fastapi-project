@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import utils as auth_utils
 from src.auth.schemas import UserRegisterSchema
-from src.database import get_session
-from src.models.todo_models import UsersORM
+from src.database.config import get_session
+from src.database.tabels import UsersORM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 

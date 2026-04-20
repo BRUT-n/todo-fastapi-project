@@ -3,9 +3,9 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import delete, select
 
 from src.api.dependencies import SessionDep
-from src.crud import todo_lists as todo_lists_crud
-from src.models.todo_models import ListsORM, UsersORM
-from src.schemas.todo_schemas import (
+from src.database.crud import todo_lists as todo_lists_crud
+from src.database.tabels import ListsORM, UsersORM
+from src.models.schemas import (
     ListAddSchema,
     ListPatchSchema,
     ListResponseSchema,

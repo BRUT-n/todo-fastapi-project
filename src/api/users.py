@@ -2,10 +2,10 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import delete, select
 
 from src.api.dependencies import SessionDep
-from src.crud import users as users_crud
-from src.database import Base, engine
-from src.models.todo_models import UsersORM
-from src.schemas.todo_schemas import (
+from src.database.crud import users as users_crud
+from src.database.config import Base, engine
+from src.database.tabels import UsersORM
+from src.models.schemas import (
     UserAddSchema,
     UserPatchSchema,
     UserResponseSchema,

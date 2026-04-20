@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from src.api.routers import all_router
 from contextlib import asynccontextmanager
-from src.database import engine, Base
+from src.database.config import engine, Base
 
 # 1. Декоратор превращает функцию в "контекстный менеджер"
 @asynccontextmanager

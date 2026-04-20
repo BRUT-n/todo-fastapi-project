@@ -11,9 +11,9 @@ from src.auth.schemas import (
     UserReadSchema,
     UserRegisterSchema,
 )
-from src.crud import users
-from src.database import get_session
-from src.models.todo_models import UsersORM
+from src.database.crud import users
+from src.database.config import get_session
+from src.database.tabels import UsersORM
 
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
 

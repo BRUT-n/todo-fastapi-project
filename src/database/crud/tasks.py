@@ -3,8 +3,8 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.models.todo_models import ListsORM, TasksORM, UsersORM
-from src.schemas.todo_schemas import (
+from src.database.tabels import ListsORM, TasksORM, UsersORM
+from src.models.schemas import (
     TaskAddSchema,
     TaskPatchSchema,
     TaskResponseSchema,
