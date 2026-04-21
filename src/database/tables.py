@@ -2,7 +2,6 @@ from typing import Annotated
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from src.database.config import Base
 
 intpk = Annotated[int, mapped_column(primary_key=True)] # переменная для всех PK

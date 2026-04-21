@@ -1,6 +1,6 @@
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import event
 
 engine = create_async_engine("sqlite+aiosqlite:///todo_lists.db") # движок БД sqlite и асинхронный драйвер для него
 

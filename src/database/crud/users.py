@@ -2,9 +2,8 @@ from fastapi import APIRouter, HTTPException, status
 from pydantic import EmailStr
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.database.config import Base, engine
-from src.database.tabels import UsersORM
+from src.database.tables import UsersORM
 from src.models.schemas import (
     UserAddSchema,
     UserPatchSchema,

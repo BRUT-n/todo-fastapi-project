@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.dependencies import SessionDep
 from src.database.crud import tasks as tasks_crud
-from src.database.tabels import ListsORM, TasksORM, UsersORM
+from src.database.tables import ListsORM, TasksORM, UsersORM
 from src.models.schemas import (
     TaskAddSchema,
     TaskPatchSchema,
