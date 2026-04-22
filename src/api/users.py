@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import delete, select
 
-from src.api.dependencies import SessionDep
+# from src.api.dependencies import SessionDep
 from src.database.config import Base, engine
 from src.database.crud import users as users_crud
 from src.database.tables import UsersORM
@@ -33,9 +33,8 @@ router = APIRouter()
     )
 async def create_user(
     user_in: UserAddSchema,
-    session: SessionDep
 ):
-    new_user = await users_crud.add_user(user=user_in, session=session)
+    new_user = await users_crud.add_user(user=user_in)
     return new_user
 
 
@@ -46,8 +45,8 @@ async def create_user(
     status_code=status.HTTP_200_OK,
     response_model=list[UserResponseSchema] # лист потому что вывод на несколько юзеров
     )
-async def get_users(session: SessionDep):
-    users = await users_crud.get_users(session=session)
+async def get_users():
+    users = await users_crud.get_users()
     return users
 
 
@@ -61,12 +60,10 @@ async def get_users(session: SessionDep):
 async def patch_user(
     user_id: int,
     data: UserPatchSchema,
-    session: SessionDep
 ):
     patched_user = await users_crud.patch_user(
         user_id=user_id,
         data=data,
-        session=session
     )
     return patched_user
 
@@ -77,9 +74,8 @@ async def patch_user(
     summary="Удалить пользователя",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-async def delete_user(user_id: int, session: SessionDep):
+async def delete_user(user_id: int):
     result = await users_crud.delete_user(
         user_id=user_id,
-        session=session
     )
     return result

@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.database.config import session_factory
 from src.database.tables import ListsORM, TasksORM, UsersORM
 from src.models.schemas import (
     TaskAddSchema,
@@ -17,50 +18,52 @@ async def add_task(
     id_user: int,
     id_list: int,
     tsk: TaskAddSchema,
-    session: AsyncSession,
+    # session: AsyncSession,
 ):
-    query = select(ListsORM).where(
-        ListsORM.user_id == id_user,
-        ListsORM.id_list == id_list,
-    )
-    result = await session.execute(query)
-    lst = result.scalar_one_or_none()
-    if lst is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User or list not found"
-            )
+    async with session_factory() as session:
+        query = select(ListsORM).where(
+            ListsORM.user_id == id_user,
+            ListsORM.id_list == id_list,
+        )
+        result = await session.execute(query)
+        lst = result.scalar_one_or_none()
+        if lst is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User or list not found"
+                )
 
-    new_tsk = TasksORM(
-        task_name = tsk.task_name,
-        completed = tsk.completed,
-        list_id = id_list, # привязка по URL-идентификатору (если юзер не даст, возьмет из УРЛ)
-    )
+        new_tsk = TasksORM(
+            task_name = tsk.task_name,
+            completed = tsk.completed,
+            list_id = id_list, # привязка по URL-идентификатору (если юзер не даст, возьмет из УРЛ)
+        )
 
-    session.add(new_tsk)
-    await session.commit()
-    await session.refresh(new_tsk)
+        session.add(new_tsk)
+        await session.commit()
+        await session.refresh(new_tsk)
 
-    return new_tsk
+        return new_tsk
 
 
 async def get_all_tasks(
     id_user: int,
     id_list: int,
-    session: AsyncSession
+    # session: AsyncSession
 ):
-    query = (
-        select(TasksORM)
-        .join(ListsORM) # джоин для проверки и юзера и листа, тк юзера нет в тасках
-        .where(
-            TasksORM.list_id == id_list,
-            ListsORM.user_id == id_user)
-    )
+    async with session_factory() as session:
+        query = (
+            select(TasksORM)
+            .join(ListsORM) # джоин для проверки и юзера и листа, тк юзера нет в тасках
+            .where(
+                TasksORM.list_id == id_list,
+                ListsORM.user_id == id_user)
+        )
 
-    result = await session.execute(query)
-    tsks = result.scalars().all()
+        result = await session.execute(query)
+        tsks = result.scalars().all()
 
-    return tsks
+        return tsks
 
 
 # @router.put(
@@ -97,56 +100,58 @@ async def patch_task(
     id_user: int,
     id_list: int,
     data: TaskPatchSchema,
-    session: AsyncSession,
+    # session: AsyncSession,
 ):
-    query = (
-        select(TasksORM)
-        .join(ListsORM)
-        .where(
-            TasksORM.id_task == id_task,
-            ListsORM.id_list == id_list,
-            ListsORM.user_id == id_user)
-    )
-    result = await session.execute(query)
-    tsk = result.scalar_one_or_none()
+    async with session_factory() as session:
+        query = (
+            select(TasksORM)
+            .join(ListsORM)
+            .where(
+                TasksORM.id_task == id_task,
+                ListsORM.id_list == id_list,
+                ListsORM.user_id == id_user)
+        )
+        result = await session.execute(query)
+        tsk = result.scalar_one_or_none()
 
-    if tsk is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        if tsk is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
-    data_dict = data.model_dump(exclude_unset=True) # исключение неуказанных данных
-    for field_name, new_value in data_dict.items():
-        setattr(tsk, field_name, new_value)
+        data_dict = data.model_dump(exclude_unset=True) # исключение неуказанных данных
+        for field_name, new_value in data_dict.items():
+            setattr(tsk, field_name, new_value)
 
-    await session.commit()
-    await session.refresh(tsk)
+        await session.commit()
+        await session.refresh(tsk)
 
-    return tsk
+        return tsk
 
 
 async def delete_task(
     id_task: int,
     id_user: int,
     id_list: int,
-    session: AsyncSession
+    # session: AsyncSession
 ):
-    query = (
-        select(TasksORM)
-        .join(ListsORM)
-        .where(
-            TasksORM.id_task == id_task,
-            ListsORM.id_list == id_list,
-            ListsORM.user_id == id_user)
-    )
-    result = await session.execute(query)
-    tsk = result.scalar_one_or_none()
+    async with session_factory() as session:
+        query = (
+            select(TasksORM)
+            .join(ListsORM)
+            .where(
+                TasksORM.id_task == id_task,
+                ListsORM.id_list == id_list,
+                ListsORM.user_id == id_user)
+        )
+        result = await session.execute(query)
+        tsk = result.scalar_one_or_none()
 
-    if tsk is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        if tsk is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
 
-    await session.delete(tsk)
-    await session.commit()
+        await session.delete(tsk)
+        await session.commit()
 
-    return None
+        return None
 
 # get по юзер айди для показа данных одного пользователя
 # работа с листами и задачи должна идти по пользователю те по айди каждого, для get+post
