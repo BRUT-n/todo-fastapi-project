@@ -13,11 +13,11 @@ def set_sqlite_pragma(dbapi_connection, _):
     cursor.execute("PRAGMA foreign_keys=ON")
     cursor.close()
 
-new_session = async_sessionmaker(engine) # фабрика сессий на основе движка
+session_factory = async_sessionmaker(engine, expire_on_commit=False) # фабрика сессий на основе движка
 
-async def get_session():
-    async with new_session() as session:
-        yield session
+# async def get_session():
+#     async with session_factory() as session:
+#         yield session
 
 class Base(DeclarativeBase):
     pass

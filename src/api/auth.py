@@ -11,7 +11,7 @@ from src.auth.schemas import (
     UserReadSchema,
     UserRegisterSchema,
 )
-from src.database.config import get_session
+from src.database.config import session_factory  #, get_session
 from src.database.crud import users
 from src.database.tables import UsersORM
 
@@ -21,6 +21,7 @@ router = APIRouter(prefix="/auth", tags=["Авторизация"])
     "/register",
     summary="Регистрация нового пользователя",
     response_model=UserReadSchema,
+    status_code=status.HTTP_201_CREATED,
     )
 async def register_new_user(
     user: UserRegisterSchema = Depends(register_user)

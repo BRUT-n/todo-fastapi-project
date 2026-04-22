@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import TableSample, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.dependencies import SessionDep
+# from src.api.dependencies import SessionDep
 from src.database.crud import tasks as tasks_crud
 from src.database.tables import ListsORM, TasksORM, UsersORM
 from src.models.schemas import (
@@ -27,13 +27,11 @@ async def add_task(
     id_user: int,
     id_list:int,
     task: TaskAddSchema,
-    session: SessionDep
 ):
     new_tsk = await tasks_crud.add_task(
         id_user=id_user,
         id_list=id_list,
         tsk=task,
-        session=session
     )
     return new_tsk
 
@@ -48,12 +46,10 @@ async def add_task(
 async def get_all_tasks(
     id_user: int,
     id_list: int,
-    session:SessionDep
 ):
     result = await tasks_crud.get_all_tasks(
         id_user=id_user,
         id_list=id_list,
-        session=session
     )
     return result
 
@@ -70,14 +66,12 @@ async def edit_task(
     id_user: int,
     id_list: int,
     data: TaskPatchSchema,
-    session: SessionDep
 ):
     edited_task = await tasks_crud.patch_task(
         id_task=id_task,
         id_user=id_user,
         id_list=id_list,
         data=data,
-        session=session
     )
     return edited_task
 
@@ -91,12 +85,10 @@ async def delete_task(
     id_task: int,
     id_user: int,
     id_list: int,
-    session: SessionDep
 ):
     await tasks_crud.delete_task(
         id_task=id_task,
         id_user=id_user,
         id_list=id_list,
-        session=session
     )
     return None
