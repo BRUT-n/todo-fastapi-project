@@ -27,7 +27,7 @@ class TokenPayload(BaseModel):
 class UserAuthSchema(BaseModel):
     model_config = ConfigDict(strict=True) # Строго ограничение, чтобы не принимал иные данные и не пытался их привести в нужные
 
-    # name: str
+    name: str
     email: EmailStr
     password: bytes # обычно в виде строки, но это реализовано дополнительно в коде
     # active: bool = True

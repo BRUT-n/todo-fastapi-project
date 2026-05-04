@@ -16,6 +16,12 @@ async def register_user(
     user_data: UserRegisterSchema,
     # session: AsyncSession = Depends(get_session)
 ) -> UsersORM:
+    """
+    Регистрация пользователя.
+    Используя pydantic-схему регистрации пользователя принимает имя, почту, пароль.
+    Проверяет в базе дублирование почты.
+    Хеширует полученный пароль и вносит его с данными в базу.
+    """
     async with session_factory() as session:
         query = select(UsersORM).where(UsersORM.email == user_data.email)
         result = await session.execute(query)
@@ -41,18 +47,22 @@ async def register_user(
         return new_user
 
 
-async def validate_auth_user(
-    email: EmailStr = Form(),
+async def validate_credentials(
+    username: EmailStr = Form(),
     password: str = Form(),
     # session: AsyncSession = Depends(get_session)
-):
+) -> UsersORM:
+    """
+    Логин пользователя.
+    Принимает почту и пароль, проверяет наличие в базе почты, и хеш пароля.
+    """
     unauth_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Неверный логин или пароль"
     )
 
     async with session_factory() as session:
-        query = select(UsersORM).where(UsersORM.email == email)
+        query = select(UsersORM).where(UsersORM.email == username)
         result = await session.execute(query)
         user = result.scalar_one_or_none()
 
@@ -68,7 +78,7 @@ async def validate_auth_user(
         return user
 
 
-async def get_current_token_payload(
+async def get_token_payload(
     token: str = Depends(oauth2_scheme)
 ) -> dict:
     """
@@ -82,19 +92,25 @@ async def get_current_token_payload(
             algorithm=auth_utils.ALGORITHM
         )
         return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token expired"
+        )
     except jwt.InvalidTokenError: # ловит базовое исключение Invalid
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials"
         )
 
-async def get_current_user(
-    payload: dict = Depends(get_current_token_payload),
+async def get_user_status_by_token(
+    payload: dict = Depends(get_token_payload),
     # session: AsyncSession = Depends(get_session)
 ) -> UsersORM:
     """
     Проверяет наличие в БД юзера на основе данных из полезной нагрузки токена.
     Обращается напрямую к свежей БД для подтверждения доступа пользователя.
+    Необходим для дополнительной проверки юзера-статуса в БД по полю почты.
     """
     email = payload.get("sub") # найти уникальный емейл
     if not email:
@@ -109,7 +125,8 @@ async def get_current_user(
         user = result.scalar_one_or_none()
 
         if user is None:
-            raise HTTPException(status_code=401, detail="User not found")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found")
 
         return user
-

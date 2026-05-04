@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, Form, HTTPException, status
-from pydantic import EmailStr
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import utils as auth_utils
-from src.auth.dependencies import register_user, validate_auth_user
+from src.auth.dependencies import (
+    get_token_payload,
+    get_user_status_by_token,
+    register_user,
+    validate_credentials,
+)
 from src.auth.schemas import (
     TokenInfo,
     UserAuthSchema,
@@ -12,7 +15,6 @@ from src.auth.schemas import (
     UserRegisterSchema,
 )
 from src.database.config import session_factory  #, get_session
-from src.database.crud import users
 from src.database.tables import UsersORM
 
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
@@ -28,16 +30,19 @@ async def register_new_user(
 ):
     return user
 
-@router.post("/login",
-    summary="Вход с логином и паролем для получения токена",
+@router.post(
+    "/login",
+    summary="Вход с логином и паролем для получения токена (в том числе для сохранения в памяти приложения)",
     response_model=TokenInfo
     )
 async def login_for_access_token(
-    user: UserAuthSchema = Depends(validate_auth_user),
+    user: UsersORM = Depends(validate_credentials),
 ):
 
     jwt_payload = {
         "sub": user.email,
+        "name": user.name,
+        "user_id": user.id_user,
     }
 
     token = auth_utils.encode_jwt_token(jwt_payload)
@@ -46,3 +51,13 @@ async def login_for_access_token(
         access_token=token,
         token_type="Bearer"
     )
+
+@router.get(
+    "/me",
+    summary="Данные пользователя",
+    response_model=UserReadSchema
+)
+async def get_me(
+    user: UserReadSchema = Depends(get_user_status_by_token)
+):
+    return user

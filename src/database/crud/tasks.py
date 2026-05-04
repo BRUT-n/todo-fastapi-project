@@ -33,6 +33,11 @@ async def add_task(
                 detail="User or list not found"
                 )
 
+        # можно сделать распаковкой и через model_dump
+        # new_tsk = TasksORM(
+        # **tsk.model_dump(),
+        # list_id=id_list
+        # )
         new_tsk = TasksORM(
             task_name = tsk.task_name,
             completed = tsk.completed,

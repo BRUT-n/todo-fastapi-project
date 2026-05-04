@@ -12,12 +12,12 @@ class UserAddSchema(BaseModel):
 class ListAddSchema(BaseModel):
     title: str = Field(..., min_length=1, max_length=32) #  (...) называются Ellipsis, означают, что поле является обязательным
     description: str = Field(..., min_length=1, max_length=256)
-    user_id: int = Field(..., ge=1) # запрещает 0
+    # user_id: int = Field(..., ge=1) # запрещает 0
 
 class TaskAddSchema(BaseModel):
     task_name: str = Field(..., min_length=4, max_length=64)
     completed: bool = Field(default=False)
-    list_id: int = Field(..., ge=1) # запрещает 0
+    # list_id: int = Field(..., ge=1) # запрещает 0
 
 # схемы для обновления данных
 class UserUpdateSchema(UserAddSchema): # полная замена данных
@@ -42,7 +42,7 @@ class ListUpdateSchema(ListAddSchema):
 class ListPatchSchema(BaseModel):
     title: str | None = Field(None, min_length=1, max_length=32) #  (...) называются Ellipsis, означают, что поле является обязательным
     description: str | None = Field(None, min_length=1, max_length=256)
-    user_id: int | None = Field(None, ge=1) # запрещает 0
+    # user_id: int | None = Field(None, ge=1) # запрещает 0
 
 class TaskUpdateSchema(TaskAddSchema):
     pass
@@ -51,7 +51,7 @@ class TaskPatchSchema(BaseModel):
     task_name: str | None = Field(None, min_length=4, max_length=64)
     completed: bool | None = Field(None)
     # По умолчанию None. Если в JSON поля нет — будет None. А model_dump(exclude_unset=True) не возьмет Ноне в словарь
-    list_id: int | None = Field(None, ge=1) # запрещает 0
+    # list_id: int | None = Field(None, ge=1) # запрещает 0
 
 # схемы для ответа
 class UserResponseSchema(BaseModel):
@@ -80,6 +80,7 @@ class TaskResponseSchema(BaseModel):
     model_config=ConfigDict(from_attributes=True)
 
 # модель для авторизации
+# ИСПОЛЬЗУЕТСЯ В ДЕМО, актуальная в модуле авторизации
 class UserAuthSchema(BaseModel):
     model_config = ConfigDict(strict=True) # Строго ограничение, чтобы не принимал иные данные и не пытался их привести в нужные
 
