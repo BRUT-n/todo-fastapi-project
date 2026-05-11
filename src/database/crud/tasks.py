@@ -19,7 +19,7 @@ async def add_task(
     id_list: int,
     tsk: TaskAddSchema,
     # session: AsyncSession,
-):
+) -> None | TasksORM:
     async with session_factory() as session:
         query = select(ListsORM).where(
             ListsORM.user_id == id_user,
@@ -28,10 +28,7 @@ async def add_task(
         result = await session.execute(query)
         lst = result.scalar_one_or_none()
         if lst is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User or list not found"
-                )
+            return None
 
         # можно сделать распаковкой и через model_dump
         # new_tsk = TasksORM(
@@ -106,7 +103,7 @@ async def patch_task(
     id_list: int,
     data: TaskPatchSchema,
     # session: AsyncSession,
-):
+) -> None | TasksORM:
     async with session_factory() as session:
         query = (
             select(TasksORM)
@@ -120,7 +117,7 @@ async def patch_task(
         tsk = result.scalar_one_or_none()
 
         if tsk is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+            return None
 
         data_dict = data.model_dump(exclude_unset=True) # исключение неуказанных данных
         for field_name, new_value in data_dict.items():
@@ -151,26 +148,9 @@ async def delete_task(
         tsk = result.scalar_one_or_none()
 
         if tsk is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+            return False
 
         await session.delete(tsk)
         await session.commit()
 
-        return None
-
-# get по юзер айди для показа данных одного пользователя
-# работа с листами и задачи должна идти по пользователю те по айди каждого, для get+post
-# возврат модели юзера из пайдентика при удачном выполнении функции.
-# коды ответа: 201 - пост, 204 - делит вместо по умолчанию 200. - DONE
-
-# сделать отдельный репозиторий под проект апи
-# перенести несделанные задачи в проект в репозитории
-
-# вынести функции в отельный модуль (например db), переместить туда сами функции, сделать отдельный модуль с ручками
-# и прописать в ручках вызов функций необходимых
-
-# нейминг переменных в ручках
-# переехать на постгресс
-# авторизация
-# депендс разобрать
-# звернуть в докер с конфигов в файле
+        return True

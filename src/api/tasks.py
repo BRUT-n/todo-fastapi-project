@@ -32,6 +32,11 @@ async def create_task_in_lst(
         id_list=id_list,
         tsk=task,
     )
+    if new_tsk is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User or list not found"
+            )
     return new_tsk
 
 @router.get(
@@ -68,6 +73,9 @@ async def edit_task_in_lst(
         id_list=id_list,
         data=data,
     )
+    if edited_task is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+
     return edited_task
 
 @router.delete(
@@ -79,11 +87,15 @@ async def delete_task_from_lst(
     id_list: int,
     user: UserReadSchema = Depends(get_user_status_by_token)
 ):
-    await tasks_crud.delete_task(
+    task_to_delete = await tasks_crud.delete_task(
         id_task=id_task,
         id_user=user.id_user,
         id_list=id_list,
     )
+
+    if task_to_delete is False:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+
     return None
 
 

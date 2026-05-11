@@ -3,6 +3,7 @@ from sqlalchemy import delete, select
 
 # from src.api.dependencies import SessionDep
 from src.auth.dependencies import get_user_status_by_token
+from src.auth.exceptions import AlreadyRegisteredException, UserNotFoundException
 from src.auth.schemas import UserReadSchema
 from src.database.crud import users as users_crud
 from src.models.schemas import (
@@ -29,6 +30,12 @@ async def patch_me(
         user_id=user.id_user,
         data=data,
     )
+    if patched_user is None:
+        raise UserNotFoundException()
+
+    if patched_user is False:
+        raise AlreadyRegisteredException()
+
     return patched_user
 
 @router.delete(
@@ -40,6 +47,8 @@ async def delete_me(user: UserReadSchema = Depends(get_user_status_by_token)):
     result = await users_crud.delete_user(
         user_id=user.id_user,
     )
+    if result is None:
+        raise UserNotFoundException()
     return result
 
 

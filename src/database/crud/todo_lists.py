@@ -18,14 +18,11 @@ async def add_todo_lists(
     id_user: int,
     lst: ListAddSchema,
     # session: AsyncSession,
-):
+) -> None | ListsORM:
     async with session_factory() as session:
         user = await session.get(UsersORM, id_user)
-        if user is None: # существование пользователя проеверяется
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-                )
+        if user is None: # если нет юзера
+            return None
 
         new_lst = ListsORM(
             title=lst.title,
@@ -99,7 +96,7 @@ async def patch_list(
     id_list: int,
     data: ListPatchSchema,
     # session: AsyncSession,
-):
+) -> ListsORM | None:
     async with session_factory() as session:
         query = select(ListsORM).where(
             ListsORM.id_list == id_list,
@@ -109,10 +106,7 @@ async def patch_list(
         lst = result.scalar_one_or_none()
 
         if lst is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="List or user not found"
-            )
+            return None
 
         data_dict = data.model_dump(exclude_unset=True) # создать словарь на основе схемы исключая не переданные поля
         for field_name, new_value in data_dict.items():
@@ -155,10 +149,8 @@ async def delete_list(
         deleted_id_list = result.scalar_one_or_none()
 
         if deleted_id_list is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="List or user not found")
+            return False
 
         await session.commit()
 
-        return None
+        return True

@@ -35,6 +35,11 @@ async def post_my_new_list(
         id_user=id,
         lst=lst,
     )
+    if new_lst is None: # существование пользователя
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+            )
     return new_lst
 
 
@@ -71,6 +76,11 @@ async def edit_list(
         id_list=list_id,
         data=data
     )
+    if edited_lst is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="List or user not found"
+        )
     return edited_lst
 
 @router.delete(
@@ -83,10 +93,15 @@ async def delete_list(
     list_id: int,
     user: UserReadSchema = Depends(get_user_status_by_token),
 ):
-    await todo_lists_crud.delete_list(
+    deleted_list = await todo_lists_crud.delete_list(
         id_user=user.id_user,
         id_list=list_id
     )
+    if deleted_list is False:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="List or user not found")
+
     return None
 
 

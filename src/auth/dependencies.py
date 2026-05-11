@@ -6,6 +6,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import utils as auth_utils
+from src.auth.exceptions import (
+    AlreadyRegisteredException,
+    InvalidCredentialsException,
+    TokenExpiredException,
+    TokenInvalidException,
+    TokenMissingSubException,
+    TokenUserNotFoundException,
+)
 from src.auth.schemas import UserRegisterSchema
 from src.database.config import session_factory  #get_session
 from src.database.tables import UsersORM
@@ -27,10 +35,7 @@ async def register_user(
         result = await session.execute(query)
         user = result.scalar_one_or_none() # проверка почты на уникальность в БД
         if user:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Пользователь с таким email уже существует"
-            )
+            raise AlreadyRegisteredException()
 
         hashed_password_bytes = auth_utils.hash_password(user_data.password)
 
@@ -56,10 +61,6 @@ async def validate_credentials(
     Логин пользователя.
     Принимает почту и пароль, проверяет наличие в базе почты, и хеш пароля.
     """
-    unauth_error = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Неверный логин или пароль"
-    )
 
     async with session_factory() as session:
         query = select(UsersORM).where(UsersORM.email == username)
@@ -67,13 +68,13 @@ async def validate_credentials(
         user = result.scalar_one_or_none()
 
         if not user:
-            raise unauth_error
+            raise InvalidCredentialsException()
 
         if not auth_utils.validate_password(
             password=password,
             hashed_password=user.hashed_password
         ):
-            raise unauth_error
+            raise InvalidCredentialsException()
 
         return user
 
@@ -93,15 +94,9 @@ async def get_token_payload(
         )
         return payload
     except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expired"
-        )
+        raise TokenExpiredException()
     except jwt.InvalidTokenError: # ловит базовое исключение Invalid
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials"
-        )
+        raise TokenInvalidException()
 
 async def get_user_status_by_token(
     payload: dict = Depends(get_token_payload),
@@ -114,10 +109,7 @@ async def get_user_status_by_token(
     """
     email = payload.get("sub") # найти уникальный емейл
     if not email:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token payload missing sub"
-        )
+        raise TokenMissingSubException()
 
     async with session_factory() as session:
         query = select(UsersORM).where(UsersORM.email == email)
@@ -125,8 +117,6 @@ async def get_user_status_by_token(
         user = result.scalar_one_or_none()
 
         if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found")
+            raise TokenUserNotFoundException()
 
         return user
