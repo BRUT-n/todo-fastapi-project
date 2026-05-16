@@ -1,8 +1,9 @@
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from src.config import settings
 
-engine = create_async_engine("sqlite+aiosqlite:///todo_lists.db") # движок БД sqlite и асинхронный драйвер для него
+engine = create_async_engine(settings.DATABASE_URL, echo=settings.DEBUG)
 
 # postgres
 

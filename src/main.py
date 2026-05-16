@@ -1,7 +1,11 @@
-from fastapi import FastAPI
-from src.api.routers import all_router
 from contextlib import asynccontextmanager
-from src.database.config import engine, Base
+
+from fastapi import FastAPI
+
+from src.api.routers import all_router
+from src.config import settings
+from src.database.config import Base, engine
+
 
 # 1. Декоратор превращает функцию в "контекстный менеджер"
 @asynccontextmanager
@@ -16,7 +20,12 @@ async def lifespan(app: FastAPI):
     # --- ЭТО БЛОК SHUTDOWN (Выполняется один раз при выключении) ---
     await engine.dispose() # закрывает каналы связи
 
-# 2. Подключаем логику к приложению
-app = FastAPI(lifespan=lifespan)
+# Подключаем логику к приложению
+app = FastAPI(
+    lifespan=lifespan,
+    title=settings.APP_TITLE,
+    version=settings.APP_VERSION,
+    debug=settings.DEBUG,
+)
 
 app.include_router(all_router)

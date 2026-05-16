@@ -1,16 +1,17 @@
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 import bcrypt
 import jwt
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-PRIVATE_KEY_PATH = BASE_DIR / "certs" / "jwt-private-key.pem"
-PUBLIC_KEY_PATH = BASE_DIR / "certs" / "jwt-public-key.pem"
+from src.config import settings
 
-PRIVATE_KEY = PRIVATE_KEY_PATH.read_text()
-PUBLIC_KEY = PUBLIC_KEY_PATH.read_text()
-ALGORITHM = "RS256"
+# BASE_DIR = Path(__file__).resolve().parent.parent.parent
+# PRIVATE_KEY_PATH = BASE_DIR / "certs" / "jwt-private-key.pem"
+# PUBLIC_KEY_PATH = BASE_DIR / "certs" / "jwt-public-key.pem"
+
+PRIVATE_KEY = settings.JWT_PRIVATE_KEY_PATH.read_text()
+PUBLIC_KEY = settings.JWT_PUBLIC_KEY_PATH.read_text()
+ALGORITHM = settings.ALGORITHM
 
 def hash_password(
     password: str,
@@ -43,7 +44,7 @@ def encode_jwt_token(
     payload: dict,
     private_key: str = PRIVATE_KEY,
     algorithm: str = ALGORITHM,
-    expire_minutes: int = 5,
+    expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
     expire_time_delta: timedelta | None = None,
 ):
     """
