@@ -44,7 +44,7 @@ class TokenMissingSubException(AuthException):
         super().__init__()
 
 class TokenUserNotFoundException(AuthException):
-    detail = "Пользователь токена не найдет"
+    detail = "Пользователь токена не найден"
 
     def __init__(self):
         super().__init__()

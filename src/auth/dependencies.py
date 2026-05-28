@@ -1,4 +1,4 @@
-import jwt
+import jwt  # используется pyjwt (см uv.lock)
 from fastapi import Depends, Form, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import EmailStr
@@ -16,6 +16,7 @@ from src.auth.exceptions import (
 )
 from src.auth.schemas import UserRegisterSchema
 from src.database.config import session_factory  #get_session
+from src.database.crud import auth as auth_crud
 from src.database.tables import UsersORM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -30,26 +31,18 @@ async def register_user(
     Проверяет в базе дублирование почты.
     Хеширует полученный пароль и вносит его с данными в базу.
     """
-    async with session_factory() as session:
-        query = select(UsersORM).where(UsersORM.email == user_data.email)
-        result = await session.execute(query)
-        user = result.scalar_one_or_none() # проверка почты на уникальность в БД
-        if user:
-            raise AlreadyRegisteredException()
+    user = await auth_crud.get_user_by_email(user_data.email)
+    if user:
+        raise AlreadyRegisteredException()
 
-        hashed_password_bytes = auth_utils.hash_password(user_data.password)
+    hashed_password_bytes = auth_utils.hash_password(user_data.password)
 
-        new_user = UsersORM(
-            name=user_data.name,
-            email=user_data.email,
-            hashed_password=hashed_password_bytes,
-        )
+    new_user = await auth_crud.create_user(
+        name=user_data.name,
+        email=user_data.email,
+        hashed_password=hashed_password_bytes)
 
-        session.add(new_user)
-        await session.commit()
-        await session.refresh(new_user)
-
-        return new_user
+    return new_user
 
 
 async def validate_credentials(
@@ -62,21 +55,18 @@ async def validate_credentials(
     Принимает почту и пароль, проверяет наличие в базе почты, и хеш пароля.
     """
 
-    async with session_factory() as session:
-        query = select(UsersORM).where(UsersORM.email == username)
-        result = await session.execute(query)
-        user = result.scalar_one_or_none()
+    user = await auth_crud.get_user_by_email(username)
 
-        if not user:
-            raise InvalidCredentialsException()
+    if not user:
+        raise InvalidCredentialsException()
 
-        if not auth_utils.validate_password(
-            password=password,
-            hashed_password=user.hashed_password
-        ):
-            raise InvalidCredentialsException()
+    if not auth_utils.validate_password(
+        password=password,
+        hashed_password=user.hashed_password
+    ):
+        raise InvalidCredentialsException()
 
-        return user
+    return user
 
 
 async def get_token_payload(
@@ -111,12 +101,8 @@ async def get_user_status_by_token(
     if not email:
         raise TokenMissingSubException()
 
-    async with session_factory() as session:
-        query = select(UsersORM).where(UsersORM.email == email)
-        result = await session.execute(query)
-        user = result.scalar_one_or_none()
+    user = await auth_crud.get_user_by_email(email=email)
+    if user is None:
+        raise TokenUserNotFoundException()
 
-        if user is None:
-            raise TokenUserNotFoundException()
-
-        return user
+    return user
