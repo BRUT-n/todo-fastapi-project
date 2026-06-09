@@ -1,0 +1,25 @@
+services:
+  database:
+    image: postgres:17-alpine
+    container_name: todo_app_postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: brutn
+      POSTGRES_PASSWORD: brutn
+      POSTGRES_DB: todo_app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # сохрани данные в томе под именем postgres_data и внутреннему адресу в контейнера
+      # uncomment if you want to persist PG data
+      # - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brutn -d todo_app_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# перечисление томов используемых выше. если нет настроек, ставятся по умолчанию
+volumes:
+  postgres_data:
