@@ -1,4 +1,4 @@
-.PHONY: run test db-start db-stop app-start stop
+.PHONY: run test db-start db-stop app-start stop docker-app-run docker-app-stop
 
 PYTHONPATH = .
 CONTAINER_NAME = todo_app_postgres_db
@@ -16,17 +16,25 @@ db-start:
 	@echo "PostgreSQL полностью готов к работе"
 
 db-stop:
-	@echo "Остановка контейнера"
+	@echo "Остановка контейнера с базой"
 	docker compose down
 
 app-start:
-	@echo "Запуск приложения"
+	@echo "Запуск приложения локально"
 	PYTHONPATH=$(PYTHONPATH) uv run uvicorn src.main:app --reload
 
 run: db-start app-start
 	@echo "Запуск приложения в связке с контейнером"
 
 stop: db-stop
+
+docker-app-run:
+	@echo "Сборка и запуск БД и приложения в изолированных контейнерах"
+	docker compose up --build
+
+docker-app-stop:
+	@echo "Остановка приложения полностью"
+	docker compose down
 
 test:
 	@echo "No tests yet"

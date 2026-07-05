@@ -20,6 +20,19 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    build: .
+    container_name: todo_app_container
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://brutn:brutn@database:5432/todo_app_db"
+
+
 # перечисление томов используемых выше. если нет настроек, ставятся по умолчанию
 volumes:
   postgres_data:
