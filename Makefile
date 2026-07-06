@@ -4,8 +4,8 @@ PYTHONPATH = .
 CONTAINER_NAME = todo_app_postgres_db
 
 db-start:
-	@echo "Запуск контейнера с PostgreSQL"
-	docker compose up -d
+	@echo "Запуск контейнера с PostgreSQL для запуска приложения локально"
+	docker compose up database -d
 
 	@echo "Ожидание готовности PostgreSQL"
 	@until docker exec $(CONTAINER_NAME) pg_isready -U brutn -d todo_app_db -h localhost; do \
@@ -17,7 +17,7 @@ db-start:
 
 db-stop:
 	@echo "Остановка контейнера с базой"
-	docker compose down
+	docker compose down database
 
 app-start:
 	@echo "Запуск приложения локально"

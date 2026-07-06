@@ -6,7 +6,7 @@ from src.config import settings
 # engine = create_async_engine(settings.DATABASE_URL, echo=settings.DEBUG)
 
 # postgres
-engine = create_async_engine(settings.DATABASE_URL)
+engine = create_async_engine(settings.db.URL)
 
 # Этот блок — КЛЮЧЕВОЙ для каскадного удаления в SQLite
 # @event.listens_for(engine.sync_engine, "connect")

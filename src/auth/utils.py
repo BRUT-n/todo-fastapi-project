@@ -9,9 +9,9 @@ from src.config import settings
 # PRIVATE_KEY_PATH = BASE_DIR / "certs" / "jwt-private-key.pem"
 # PUBLIC_KEY_PATH = BASE_DIR / "certs" / "jwt-public-key.pem"
 
-PRIVATE_KEY = settings.JWT_PRIVATE_KEY_PATH.read_text()
-PUBLIC_KEY = settings.JWT_PUBLIC_KEY_PATH.read_text()
-ALGORITHM = settings.ALGORITHM
+PRIVATE_KEY = settings.auth.JWT_PRIVATE_KEY_PATH.read_text()
+PUBLIC_KEY = settings.auth.JWT_PUBLIC_KEY_PATH.read_text()
+ALGORITHM = settings.auth.ALGORITHM
 
 def hash_password(
     password: str,
@@ -44,7 +44,7 @@ def encode_jwt_token(
     payload: dict,
     private_key: str = PRIVATE_KEY,
     algorithm: str = ALGORITHM,
-    expire_minutes: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+    expire_minutes: int = settings.auth.ACCESS_TOKEN_EXPIRE_MINUTES,
     expire_time_delta: timedelta | None = None,
 ):
     """

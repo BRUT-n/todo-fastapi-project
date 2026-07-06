@@ -3,10 +3,12 @@ services:
     image: postgres:17-alpine
     container_name: todo_app_postgres_db
     restart: always
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: brutn
-      POSTGRES_PASSWORD: brutn
-      POSTGRES_DB: todo_app_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
@@ -15,7 +17,7 @@ services:
       # uncomment if you want to persist PG data
       # - ./postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U brutn -d todo_app_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,7 +32,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: "postgresql+asyncpg://brutn:brutn@database:5432/todo_app_db"
+      DB__URL: "postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}"
 
 
 # перечисление томов используемых выше. если нет настроек, ставятся по умолчанию

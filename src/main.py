@@ -23,9 +23,9 @@ async def lifespan(app: FastAPI):
 # Подключаем логику к приложению
 app = FastAPI(
     lifespan=lifespan,
-    title=settings.APP_TITLE,
-    version=settings.APP_VERSION,
-    debug=settings.DEBUG,
+    title=settings.app.TITLE,
+    version=settings.app.VERSION,
+    debug=settings.app.DEBUG,
 )
 
 app.include_router(all_router)
