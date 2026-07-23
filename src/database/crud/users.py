@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, FastAPI, HTTPException, status
 from pydantic import EmailStr
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -95,7 +95,7 @@ async def patch_user(
     user_id: int,
     data: UserPatchSchema,
     # session: AsyncSession,
-):
+) -> UsersORM | None | bool:
     """
     Обновляет часть сущности.
     Требует передать поля, которые надо поменять у объекта.
@@ -138,7 +138,7 @@ async def patch_user(
 async def delete_user(
     user_id: int,
     # session: AsyncSession,
-):
+) -> None | bool:
     # query = (
     #     select(UsersORM)
     #     .where(UsersORM.id_user == user_id)

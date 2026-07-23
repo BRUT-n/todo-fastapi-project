@@ -31,5 +31,27 @@ ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 # Помогает Ruff понимать, что ваши папки внутри src — это свои модули
-known-first-party = ["fastapi-project-1"] 
+known-first-party = ["todo-app-project"] 
 
+[dependency-groups]
+dev = [
+    "datetime>=6.0",
+    "freezegun>=1.5.5",
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "testcontainers[postgres]>=4.14.2",
+]
+
+[tool.pytest.ini_options]
+# 1. Где искать исходный код проекта
+pythonpath = ["."]
+
+# указывает где искать тесты
+testpaths = ["tests"]
+
+# 2. Как обрабатывать асинхронные тесты
+asyncio_mode = "auto"
+
+# 3. Время жизни цикла событий по умолчанию
+asyncio_default_fixture_loop_scope = "session"

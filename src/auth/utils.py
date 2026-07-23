@@ -12,6 +12,7 @@ from src.config import settings
 PRIVATE_KEY = settings.auth.JWT_PRIVATE_KEY_PATH.read_text()
 PUBLIC_KEY = settings.auth.JWT_PUBLIC_KEY_PATH.read_text()
 ALGORITHM = settings.auth.ALGORITHM
+BCRYPT_ROUNDS = settings.auth.BCRYPT_ROUNDS
 
 def hash_password(
     password: str,
@@ -22,7 +23,7 @@ def hash_password(
     encode - перевод пароля в байты.
     hashpw - хеширование.
     """
-    salt = bcrypt.gensalt(rounds=14) # можно перенести в модуль настроек, так же как и константы
+    salt = bcrypt.gensalt(rounds=BCRYPT_ROUNDS)
     password_to_bytes = password.encode()
     return bcrypt.hashpw(password_to_bytes, salt)
 
@@ -57,7 +58,7 @@ def encode_jwt_token(
     if expire_time_delta:
         expire = now + expire_time_delta
     else:
-        expire = now + timedelta(expire_minutes)
+        expire = now + timedelta(minutes=expire_minutes)
 
     encoded_payload.update(
         exp=expire,

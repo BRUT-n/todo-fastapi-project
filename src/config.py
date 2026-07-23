@@ -17,6 +17,7 @@ class AuthSettings(BaseModel):
     JWT_PUBLIC_KEY_PATH: Path = Path("certs/jwt-public-key.pem")
     ALGORITHM: str = "RS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 5
+    BCRYPT_ROUNDS: int = 4
 
 
 class Settings(BaseSettings):
