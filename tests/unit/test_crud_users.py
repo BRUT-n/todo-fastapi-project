@@ -1,35 +1,38 @@
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.crud.users import delete_user, patch_user
 from src.database.tables import UsersORM
 from src.models.schemas import UserPatchSchema
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_patch_user_name_success(create_test_user):
-    new_user = create_test_user
+async def test_patch_user_name_success(create_test_user: UsersORM):
+    existed_user = create_test_user
+    old_email = existed_user.email
 
     patch_data = UserPatchSchema(name="NewUserName")
-    updated_user = await patch_user(user_id=new_user.id_user, data=patch_data)
+    updated_user = await patch_user(user_id=existed_user.id_user, data=patch_data)
 
     assert updated_user is not None
     assert isinstance(updated_user, UsersORM)
     assert updated_user.name == "NewUserName"
-    assert updated_user.email == "usermail@test.com"
+    assert updated_user.email == old_email
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_patch_user_email_success(create_test_user):
-    new_user = create_test_user
+async def test_patch_user_email_success(create_test_user: UsersORM):
+    existed_user = create_test_user
+    old_name = existed_user.name
 
     patch_data = UserPatchSchema(email="newemail@test.com")
-    updated_user = await patch_user(user_id=new_user.id_user, data=patch_data)
+    updated_user = await patch_user(user_id=existed_user.id_user, data=patch_data)
 
     assert updated_user is not None
     assert isinstance(updated_user, UsersORM)
-    assert updated_user.name == new_user.name
+    assert updated_user.name == old_name
     assert updated_user.email == "newemail@test.com"
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_patch_user_email__already_exists(session, create_test_user):
+async def test_patch_user_email_already_exists(session: AsyncSession, create_test_user: UsersORM):
 
     second_user = UsersORM(
         name="Name2",
@@ -47,14 +50,14 @@ async def test_patch_user_email__already_exists(session, create_test_user):
     assert updated_user is False
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_patch_user_not_found(session):
+async def test_patch_user_not_found():
     patch_data = UserPatchSchema(name="Name", email="testmail@test.com")
     result = await patch_user(user_id=99, data=patch_data)
 
     assert result is None
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_delete_user(create_test_user):
+async def test_delete_user(create_test_user: UsersORM):
     user = create_test_user
     deleted_user = await delete_user(user_id=user.id_user)
 

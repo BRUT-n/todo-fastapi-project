@@ -1,17 +1,13 @@
-# session_factory() переопределить на тестовую базы через тест контейнеры
-# для тестирования фукнций с привязкой к тестовой базе (круды)
-from _pytest import scope
 import pytest
 import pytest_asyncio
 import src.database.config
 import src.database.crud.auth
-
-# from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from src.database.config import Base
+from src.database.tables import ListsORM, UsersORM
 from testcontainers.postgres import PostgresContainer
 
-from src.database.tables import UsersORM
+from src.models.schemas import ListAddSchema
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -33,6 +29,9 @@ async def test_engine(postgres_container):
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
 
 
@@ -59,10 +58,11 @@ async def override_session_factory(test_connection, monkeypatch):
         join_transaction_mode="create_savepoint"  # Заставляет commit() превращаться в SAVEPOINT
     )
 
-    # Подменяем фабрику во всех модулях приложения
+    # Подменяем фабрику во всех тестируемых модулях приложения
     monkeypatch.setattr("src.database.config.session_factory", test_session_factory)
     monkeypatch.setattr("src.database.crud.users.session_factory", test_session_factory)
     monkeypatch.setattr("src.database.crud.auth.session_factory", test_session_factory)
+    monkeypatch.setattr("src.database.crud.todo_lists.session_factory", test_session_factory)
 
     yield test_session_factory
 
@@ -94,3 +94,21 @@ async def create_test_user(session):
     await session.refresh(user)
 
     return user
+
+@pytest_asyncio.fixture(scope="function")
+async def create_test_todo_list(session, create_test_user):
+    """
+    Фикстура создания листа задач в БД для тестов.
+    Привязана к тестовому пользователю.
+    """
+    todo_lst = ListsORM(
+        title="Title",
+        description="Description",
+        user_id=create_test_user.id_user
+    )
+
+    session.add(todo_lst)
+    await session.commit()
+    await session.refresh(todo_lst)
+
+    return todo_lst
