@@ -173,3 +173,5 @@ cython_debug/
 # Other
 certs/
 learning/
+htmlcov/
+notes.md

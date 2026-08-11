@@ -4,10 +4,9 @@ import src.database.config
 import src.database.crud.auth
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from src.database.config import Base
-from src.database.tables import ListsORM, UsersORM
+from src.database.tables import ListsORM, TasksORM, UsersORM
+from src.models.schemas import ListAddSchema, TaskAddSchema
 from testcontainers.postgres import PostgresContainer
-
-from src.models.schemas import ListAddSchema
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -63,6 +62,7 @@ async def override_session_factory(test_connection, monkeypatch):
     monkeypatch.setattr("src.database.crud.users.session_factory", test_session_factory)
     monkeypatch.setattr("src.database.crud.auth.session_factory", test_session_factory)
     monkeypatch.setattr("src.database.crud.todo_lists.session_factory", test_session_factory)
+    monkeypatch.setattr("src.database.crud.tasks.session_factory", test_session_factory)
 
     yield test_session_factory
 
@@ -112,3 +112,23 @@ async def create_test_todo_list(session, create_test_user):
     await session.refresh(todo_lst)
 
     return todo_lst
+
+@pytest_asyncio.fixture(scope="function")
+async def create_test_task(session, create_test_todo_list):
+    """
+    Фикстура создания задачи БД для тестов.
+    Привязана к тестовому списку задач.
+    """
+    task = TasksORM(
+        task_name="TaskName",
+        completed=False,
+        list_id=create_test_todo_list.id_list
+    )
+
+    session.add(task)
+    await session.commit()
+    await session.refresh(task)
+
+    return task
+
+

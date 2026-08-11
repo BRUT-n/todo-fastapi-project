@@ -44,12 +44,10 @@ async def patch_me(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_me(user: UserReadSchema = Depends(get_user_status_by_token)):
-    result = await users_crud.delete_user(
+    await users_crud.delete_user(
         user_id=user.id_user,
     )
-    if result is None:
-        raise UserNotFoundException()
-    return result
+    return None
 
 
 # админские роуты

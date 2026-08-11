@@ -24,23 +24,17 @@ async def test_create_user():
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_get_user_by_email():
+async def test_get_user_by_email(create_test_user):
     # 1. Arrange: Создаем тестового пользователя
-    user_data = {
-        "name": "UserName",
-        "email": "usermail@email.com",
-        "hashed_password": b"password_in_bytes"
-    }
+    existed_user = create_test_user
+    users_email = existed_user.email
 
-    # 2. Act: Вызываем тестируемую CRUD-функцию
-    await create_user(**user_data)
-
-    result = await get_user_by_email(user_data["email"])
+    result = await get_user_by_email(users_email)
 
     assert result is not None
-    assert result.email == user_data["email"]
-    assert result.name == user_data["name"]
-    assert result.hashed_password == user_data["hashed_password"]
+    assert result.email == existed_user.email
+    assert result.name == existed_user.name
+    assert result.hashed_password == existed_user.hashed_password
 
 
 @pytest.mark.asyncio(loop_scope="session")

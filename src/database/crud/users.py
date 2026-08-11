@@ -95,7 +95,7 @@ async def patch_user(
     user_id: int,
     data: UserPatchSchema,
     # session: AsyncSession,
-) -> UsersORM | None | bool:
+) -> UsersORM | None :
     """
     Обновляет часть сущности.
     Требует передать поля, которые надо поменять у объекта.
@@ -114,17 +114,17 @@ async def patch_user(
 
         data_dict = data.model_dump(exclude_unset=True) # превращает !только переданные данные! Pydantic-модели в словарь
 
-        new_email = data_dict.get("email") # проверка на вход - меняют емейл?
-        if new_email and new_email != user.email: # проверка полученного и того, что в БД(user.email)
-            query_check = (
-                select(UsersORM)
-                .where(UsersORM.email == new_email) # проверка мейла из базы и переданного на уникальность
-            )
-            result_check = await session.execute(query_check)
-            existing_mail = result_check.scalar_one_or_none() # либо да либо Ноне
+        # new_email = data_dict.get("email") # проверка на вход - меняют емейл?
+        # if new_email and new_email != user.email: # проверка полученного и того, что в БД(user.email)
+        #     query_check = (
+        #         select(UsersORM)
+        #         .where(UsersORM.email == new_email) # проверка мейла из базы и переданного на уникальность
+        #     )
+        #     result_check = await session.execute(query_check)
+        #     existing_mail = result_check.scalar_one_or_none() # либо да либо Ноне
 
-            if existing_mail:
-                return False # обрабатывается в роуте
+        #     if existing_mail:
+        #         return False # обрабатывается в роуте
 
         for field_name, new_value in data_dict.items(): # итерация по данным которые были указаны
             setattr(user, field_name, new_value) # спец функция на замену данных по типу user.name = "Ivan".
@@ -138,7 +138,7 @@ async def patch_user(
 async def delete_user(
     user_id: int,
     # session: AsyncSession,
-) -> None | bool:
+) -> None:
     # query = (
     #     select(UsersORM)
     #     .where(UsersORM.id_user == user_id)
@@ -156,14 +156,14 @@ async def delete_user(
         query = (
             delete(UsersORM)
             .where(UsersORM.id_user == user_id)
-            .returning(UsersORM.id_user) # возврат удаленного айди
+            # .returning(UsersORM.id_user) # возврат удаленного айди
         ) # прямой запрос на удаление пользователя
+        await session.execute(query)
+        # result = await session.execute(query)
+        # deleted_user_id = result.scalar_one_or_none() # проверка - вернулся ли удаленный айди?
 
-        result = await session.execute(query)
-        deleted_user_id = result.scalar_one_or_none() # проверка - вернулся ли удаленный айди?
-
-        if deleted_user_id is None: # если айди не вернулся, значит пользователя нет и удаления не выполнено
-            return None
+        # if deleted_user_id is None: # если айди не вернулся, значит пользователя нет и удаления не выполнено
+        #     return None
 
         await session.commit()
-        return True
+        return None

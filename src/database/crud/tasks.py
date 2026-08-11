@@ -1,4 +1,5 @@
 
+from typing import Sequence
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,7 +53,7 @@ async def get_all_tasks(
     id_user: int,
     id_list: int,
     # session: AsyncSession
-):
+) -> Sequence[TasksORM]:
     async with session_factory() as session:
         query = (
             select(TasksORM)
