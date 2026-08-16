@@ -33,8 +33,8 @@ async def patch_me(
     if patched_user is None:
         raise UserNotFoundException()
 
-    if patched_user is False:
-        raise AlreadyRegisteredException()
+    # if patched_user is False:
+    #     raise AlreadyRegisteredException()
 
     return patched_user
 

@@ -14,6 +14,17 @@ async def get_user_by_email(email: str) -> UsersORM | None:
 
         return user
 
+async def get_user_by_id(user_id: int) -> UsersORM | None:
+    """
+    Получить пользователя по его уникальному ID
+    """
+    async with session_factory() as session:
+        query = select(UsersORM).where(UsersORM.id_user == user_id)
+        result = await session.execute(query)
+        user = result.scalar_one_or_none()
+        return user
+
+
 async def create_user(name: str, email: str, hashed_password: bytes) -> UsersORM:
     """
     Создать пользователя с записью полей в базу.

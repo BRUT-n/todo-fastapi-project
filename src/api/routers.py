@@ -7,8 +7,9 @@ from src.api.todo_lists import admin as admin_lists_router
 from src.api.todo_lists import router as todo_list_router
 from src.api.users import admin as admin_users_router
 from src.api.users import router as user_router
-from src.demo_auth.views import router as demo_auth_router
-from src.demo_auth_advanced.demo_jwt_auth import router as demo_jwt_auth_router
+
+# from src.demo_auth.views import router as demo_auth_router
+# from src.demo_auth_advanced.demo_jwt_auth import router as demo_jwt_auth_router
 
 all_router = APIRouter() # базовый роутер для всего АПИ
 

@@ -3,6 +3,7 @@ import pytest_asyncio
 import src.database.config
 import src.database.crud.auth
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from src.auth.utils import hash_password
 from src.database.config import Base
 from src.database.tables import ListsORM, TasksORM, UsersORM
 from src.models.schemas import ListAddSchema, TaskAddSchema
@@ -83,10 +84,11 @@ async def create_test_user(session):
     """
     Фикстура создания пользователя в БД для тестов.
     """
+    real_hash = hash_password("secret_password")
     user = UsersORM(
         name="UserName",
         email="usermail@test.com",
-        hashed_password=b"secret_password"
+        hashed_password=real_hash
     )
 
     session.add(user)

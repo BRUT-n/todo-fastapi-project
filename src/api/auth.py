@@ -39,8 +39,14 @@ async def login_for_access_token(
     user: UsersORM = Depends(validate_credentials),
 ):
 
+    # jwt_payload = {
+    #     "sub": user.email,
+    #     "name": user.name,
+    #     "user_id": user.id_user,
+    # }
+
     jwt_payload = {
-        "sub": user.email,
+        "sub": str(user.id_user), # зашить уникальный АДЙДИ вместо емейла
         "name": user.name,
         "user_id": user.id_user,
     }

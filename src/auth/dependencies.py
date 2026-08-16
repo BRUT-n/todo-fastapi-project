@@ -95,13 +95,31 @@ async def get_user_status_by_token(
     """
     Проверяет наличие в БД юзера на основе данных из полезной нагрузки токена.
     Обращается напрямую к свежей БД для подтверждения доступа пользователя.
-    Необходим для дополнительной проверки юзера-статуса в БД по полю почты.
+    Необходим для дополнительной проверки юзера-статуса в БД по полю АЙДИ (не почты).
     """
-    email = payload.get("sub") # найти уникальный емейл
-    if not email:
+    # email = payload.get("sub") # найти уникальный емейл
+    # if not email:
+    #     raise TokenMissingSubException()
+
+    # user = await auth_crud.get_user_by_email(email=email)
+
+    # if user is None:
+    #     raise TokenUserNotFoundException()
+
+    # return user
+
+    # использование уже уникального АЙДИ вместо емейла
+    sub = payload.get("sub")
+    if not sub:
         raise TokenMissingSubException()
 
-    user = await auth_crud.get_user_by_email(email=email)
+    try:
+        user_id = int(sub)
+    except (ValueError, TypeError):
+        raise TokenInvalidException
+
+    user = await auth_crud.get_user_by_id(user_id=user_id)
+
     if user is None:
         raise TokenUserNotFoundException()
 

@@ -5,20 +5,20 @@ from src.database.crud.users import delete_user, patch_user
 from src.database.tables import UsersORM
 from src.models.schemas import UserPatchSchema
 
-name_data = "NewUserName"
-email_data = "newemail@test.com"
+NAME_DATA = "NewUserName"
+EMAIL_DATA = "newemail@test.com"
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_patch_user_name_success(create_test_user: UsersORM):
     existed_user = create_test_user
     old_email = existed_user.email
 
-    patch_data = UserPatchSchema(name=name_data)
+    patch_data = UserPatchSchema(name=NAME_DATA)
     updated_user = await patch_user(user_id=existed_user.id_user, data=patch_data)
 
     assert updated_user is not None
     assert isinstance(updated_user, UsersORM)
-    assert updated_user.name == name_data
+    assert updated_user.name == NAME_DATA
     assert updated_user.email == old_email
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -26,15 +26,15 @@ async def test_patch_user_email_success(create_test_user: UsersORM):
     existed_user = create_test_user
     old_name = existed_user.name
 
-    patch_data = UserPatchSchema(email=email_data)
+    patch_data = UserPatchSchema(email=EMAIL_DATA)
     updated_user = await patch_user(user_id=existed_user.id_user, data=patch_data)
 
     assert updated_user is not None
     assert isinstance(updated_user, UsersORM)
     assert updated_user.name == old_name
-    assert updated_user.email == email_data
+    assert updated_user.email == EMAIL_DATA
 
-# переписать исходные функции с использование миграций алембик
+# TODO переписать исходные функции и используя миграцию алембик
 
 # @pytest.mark.asyncio(loop_scope="session")
 # async def test_patch_user_email_already_exists(session: AsyncSession, create_test_user: UsersORM):
@@ -49,14 +49,14 @@ async def test_patch_user_email_success(create_test_user: UsersORM):
 #     await session.commit()
 #     await session.refresh(second_user)
 
-#     patch_data = UserPatchSchema(email=mail_to_patch)
+#     patch_data = UserPatchSchema(email="mail_to_patch")
 #     updated_user = await patch_user(user_id=second_user.id_user, data=patch_data)
 
 #     assert updated_user is False
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_patch_user_not_found():
-    patch_data = UserPatchSchema(name=name_data, email=email_data)
+    patch_data = UserPatchSchema(name=NAME_DATA, email=EMAIL_DATA)
     result = await patch_user(user_id=99999, data=patch_data)
 
     assert result is None
