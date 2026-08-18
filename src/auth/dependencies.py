@@ -27,35 +27,37 @@ async def register_user(
 ) -> UsersORM:
     """
     Регистрация пользователя.
-    Используя pydantic-схему регистрации пользователя принимает имя, почту, пароль.
-    Проверяет в базе дублирование почты.
+    Используя pydantic-схему регистрации пользователя принимает имя, username, почту, пароль.
+    Проверяет в базе дублирование username.
     Хеширует полученный пароль и вносит его с данными в базу.
     """
-    user = await auth_crud.get_user_by_email(user_data.email)
+    user = await auth_crud.get_user_by_username(user_data.username)
     if user:
         raise AlreadyRegisteredException()
 
     hashed_password_bytes = auth_utils.hash_password(user_data.password)
 
     new_user = await auth_crud.create_user(
+        username=user_data.username,
         name=user_data.name,
+        hashed_password=hashed_password_bytes,
         email=user_data.email,
-        hashed_password=hashed_password_bytes)
+        )
 
     return new_user
 
 
 async def validate_credentials(
-    username: EmailStr = Form(),
+    username: str = Form(),
     password: str = Form(),
     # session: AsyncSession = Depends(get_session)
 ) -> UsersORM:
     """
     Логин пользователя.
-    Принимает почту и пароль, проверяет наличие в базе почты, и хеш пароля.
+    Принимает username и пароль, проверяет наличие в базе username, и хеш пароля.
     """
 
-    user = await auth_crud.get_user_by_email(username)
+    user = await auth_crud.get_user_by_username(username)
 
     if not user:
         raise InvalidCredentialsException()

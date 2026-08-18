@@ -5,6 +5,7 @@ from sqlalchemy import delete, select
 from src.auth.dependencies import get_user_status_by_token
 from src.auth.exceptions import AlreadyRegisteredException, UserNotFoundException
 from src.auth.schemas import UserReadSchema
+from src.database.crud import auth as auth_crud
 from src.database.crud import users as users_crud
 from src.models.schemas import (
     UserAddSchema,
@@ -26,12 +27,17 @@ async def patch_me(
     data: UserPatchSchema,
     user: UserReadSchema = Depends(get_user_status_by_token)
 ):
+    if data.username and data.username != user.username: # проверка уникальности username
+        check_unique = await auth_crud.get_user_by_username(data.username)
+        if check_unique:
+            raise AlreadyRegisteredException()
+
     patched_user = await users_crud.patch_user(
         user_id=user.id_user,
         data=data,
     )
-    if patched_user is None:
-        raise UserNotFoundException()
+    # if patched_user is None: # лишняя проверка (по токену юзер уже существует)
+    #     raise UserNotFoundException()
 
     # if patched_user is False:
     #     raise AlreadyRegisteredException()

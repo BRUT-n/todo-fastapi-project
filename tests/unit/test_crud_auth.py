@@ -1,6 +1,10 @@
 import pytest
 from src.auth.dependencies import get_user_status_by_token
-from src.database.crud.auth import create_user, get_user_by_email, get_user_by_id
+from src.database.crud.auth import (  #get_user_by_email
+    create_user,
+    get_user_by_id,
+    get_user_by_username,
+)
 from src.database.tables import UsersORM  # Ваша ORM модель
 
 
@@ -8,6 +12,7 @@ from src.database.tables import UsersORM  # Ваша ORM модель
 async def test_create_user():
     # 1. Arrange: Создаем тестового пользователя
     user_data = {
+        "username" : "UniqueUsername",
         "name": "UserName",
         "email": "usermail@email.com",
         "hashed_password": b"password_in_bytes"
@@ -19,29 +24,30 @@ async def test_create_user():
     # 3. Assert: Проверяем результат
     assert result is not None
     assert isinstance(result.id_user, int)
+    assert result.username == user_data["username"]
     assert result.email == user_data["email"]
     assert result.name == user_data["name"]
     assert result.hashed_password == user_data["hashed_password"]
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_get_user_by_email(create_test_user):
+async def test_get_user_by_username(create_test_user):
     # 1. Arrange: Создаем тестового пользователя
     existed_user = create_test_user
-    users_email = existed_user.email
+    users_username = existed_user.username
 
-    result = await get_user_by_email(users_email)
+    result = await get_user_by_username(users_username)
 
     assert result is not None
-    assert result.email == existed_user.email
+    assert result.username == existed_user.username
     assert result.name == existed_user.name
     assert result.hashed_password == existed_user.hashed_password
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_get_user_by_email_not_found():
+async def test_get_user_by_username_not_found():
     # Act: Ищем несуществующего пользователя
-    result = await get_user_by_email("wrong@example.com")
+    result = await get_user_by_username("WrongUsername")
 
     # Assert: Функция должна вернуть None
     assert result is None

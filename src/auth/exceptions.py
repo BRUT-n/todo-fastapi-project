@@ -51,7 +51,7 @@ class TokenUserNotFoundException(AuthException):
 
 class AlreadyRegisteredException(BaseAppException):
     status_code = status.HTTP_409_CONFLICT
-    detail = "Пользователь с таким email уже существует"
+    detail = "Пользователь с таким username уже существует"
 
     def __init__(self):
         super().__init__()

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey, String, null
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database.config import Base
 
@@ -10,10 +10,11 @@ class UsersORM(Base):
     __tablename__ = "users"
 
     id_user: Mapped[intpk] # тип столбца через алиас-переменную
+    username: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(32)) # валидация длины
 
     # email:Mapped[str] = mapped_column(String(32), unique=True, nullable=False) # уникальность емейла
-    email:Mapped[str] = mapped_column(String(32), nullable=False) # уникальность емейла удалена и использована в миграции бд
+    email:Mapped[str | None] = mapped_column(String(64), nullable=True) # уникальность емейла удалена и использована в миграции бд
     # email: Mapped[str | None] = mapped_column(String(32), nullable=True) #EmailStr | None # валидация эмейла или пусто - НЕВЕРНО, ВАЛИДАЦИЯ ЧЕРЕЗ ПАЙДЕНТИК ТОЛЬКО В СХЕМАХ АПИ
 
     hashed_password: Mapped[bytes] = mapped_column(nullable=False) # поле для хранения хеша пароля

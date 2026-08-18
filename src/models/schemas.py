@@ -32,6 +32,7 @@ class UserPatchSchema(BaseModel): # частичная замена данных
     перенаследование от базы, потому что
     переопределение с обязательной на необязательную не круто
     """
+    username: str | None = Field(None, min_length=6, max_length=32)
     name: str | None = Field(None, min_length=2, max_length=32)
     email: EmailStr | None = None
     model_config = ConfigDict(extra="forbid")
@@ -56,8 +57,9 @@ class TaskPatchSchema(BaseModel):
 # схемы для ответа
 class UserResponseSchema(BaseModel):
     id_user: int
+    username: str
     name: str
-    email: str | None
+    email: str | None = None
 
     model_config=ConfigDict(from_attributes=True)
 
@@ -84,7 +86,6 @@ class TaskResponseSchema(BaseModel):
 class UserAuthSchema(BaseModel):
     model_config = ConfigDict(strict=True) # Строго ограничение, чтобы не принимал иные данные и не пытался их привести в нужные
 
-    username: str
     password: bytes # обычно в виде строки, но это реализовано дополнительно в коде
     email: EmailStr | None = None
     active: bool = True

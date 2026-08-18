@@ -3,12 +3,23 @@ from src.database.config import session_factory
 from src.database.tables import UsersORM
 
 
-async def get_user_by_email(email: str) -> UsersORM | None:
+# async def get_user_by_email(email: str) -> UsersORM | None:
+#     """
+#     Проверить наличие юзера по мейлу в базе.
+#     """
+#     async with session_factory() as session:
+#         query = select(UsersORM).where(UsersORM.email == email)
+#         result = await session.execute(query)
+#         user = result.scalar_one_or_none() # проверка почты на уникальность в БД
+
+#         return user
+
+async def get_user_by_username(username: str) -> UsersORM | None:
     """
-    Проверить наличие юзера по мейлу в базе.
+    Проверить наличие юзера по username в базе.
     """
     async with session_factory() as session:
-        query = select(UsersORM).where(UsersORM.email == email)
+        query = select(UsersORM).where(UsersORM.username == username)
         result = await session.execute(query)
         user = result.scalar_one_or_none() # проверка почты на уникальность в БД
 
@@ -25,12 +36,13 @@ async def get_user_by_id(user_id: int) -> UsersORM | None:
         return user
 
 
-async def create_user(name: str, email: str, hashed_password: bytes) -> UsersORM:
+async def create_user(username: str, name: str, hashed_password: bytes, email: str | None = None, ) -> UsersORM:
     """
     Создать пользователя с записью полей в базу.
     """
     async with session_factory() as session:
         new_user = UsersORM(
+            username=username,
             name=name,
             email=email,
             hashed_password=hashed_password,

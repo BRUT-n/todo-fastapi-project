@@ -64,6 +64,7 @@ async def override_session_factory(test_connection, monkeypatch):
     monkeypatch.setattr("src.database.crud.auth.session_factory", test_session_factory)
     monkeypatch.setattr("src.database.crud.todo_lists.session_factory", test_session_factory)
     monkeypatch.setattr("src.database.crud.tasks.session_factory", test_session_factory)
+    monkeypatch.setattr("src.database.crud.healthcheck.session_factory", test_session_factory)
 
     yield test_session_factory
 
@@ -86,6 +87,7 @@ async def create_test_user(session):
     """
     real_hash = hash_password("secret_password")
     user = UsersORM(
+        username="UniqueUsername",
         name="UserName",
         email="usermail@test.com",
         hashed_password=real_hash
