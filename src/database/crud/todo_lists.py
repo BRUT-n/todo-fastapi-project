@@ -1,5 +1,5 @@
-
 from typing import Sequence
+
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,10 +20,13 @@ async def add_todo_lists(
     lst: ListAddSchema,
     # session: AsyncSession,
 ) -> None | ListsORM:
+    """
+    Передавать в id_user только id существующего в базе пользователя.
+    """
     async with session_factory() as session:
-        user = await session.get(UsersORM, id_user)
-        if user is None: # если нет юзера
-            return None
+        # user = await session.get(UsersORM, id_user)
+        # if user is None: # если нет юзера
+        #     return None
 
         new_lst = ListsORM(
             title=lst.title,
@@ -47,10 +50,18 @@ async def add_todo_lists(
 
 async def get_lists(
     id_user: int,
+    limit: int = 5,
+    offset: int = 0,
     # session: AsyncSession,
 ) -> Sequence[ListsORM]:
     async with session_factory() as session:
-        query = select(ListsORM).where(ListsORM.user_id == id_user)
+        query = (
+            select(ListsORM)
+            .where(ListsORM.user_id == id_user)
+            .order_by(ListsORM.id_list) # сортировка для предсказуемости вывода
+            .limit(limit) # лимит вывода строк
+            .offset(offset) # смещение - сколько пропускать строк считая от первой строки
+        )
         result = await session.execute(query)
         lists = result.scalars().all() # достаем список ORM-объектов в виде списка пайтон-объектов
         return lists # преобразует ORM → Pydantic

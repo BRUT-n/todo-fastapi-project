@@ -2,7 +2,6 @@ from sqlalchemy import select
 from src.database.config import session_factory
 from src.database.tables import UsersORM
 
-
 # async def get_user_by_email(email: str) -> UsersORM | None:
 #     """
 #     Проверить наличие юзера по мейлу в базе.

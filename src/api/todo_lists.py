@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import delete, select
 
 from src.auth.dependencies import get_user_status_by_token
@@ -17,8 +17,7 @@ from src.models.schemas import (
 
 router = APIRouter(prefix="/me", tags=["Работа с листами задач"])
 
-# ссылкается на схему в которой обязательно надо указывать айди юзера
-# надо исправить схему или добавить отдельную
+
 @router.post(
     "/to-do-lists",
     # tags=["Листы задач"],
@@ -30,16 +29,15 @@ async def post_my_new_list(
     lst: ListAddSchema,
     user: UserReadSchema = Depends(get_user_status_by_token),
 ):
-    id = user.id_user
     new_lst = await todo_lists.add_todo_lists(
-        id_user=id,
+        id_user=user.id_user,
         lst=lst,
     )
-    if new_lst is None: # существование пользователя
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-            )
+    # if new_lst is None: # лишняя проверка существования пользователя (есть в Depends)
+    #     raise HTTPException(
+    #         status_code=status.HTTP_404_NOT_FOUND,
+    #         detail="User not found",
+    #         )
     return new_lst
 
 
@@ -51,10 +49,25 @@ async def post_my_new_list(
     response_model=list[ListResponseSchema],
 )
 async def get_my_all_lists(
+    limit: int = Query(
+        default=5,
+        ge=1,
+        le=20,
+        title="Лимит листов на вывод пользователю.",
+        description="Количество списков задач, которое нужно вернуть на одной странице (размер страницы)."
+    ),
+    offset: int = Query(
+        default=0,
+        ge=0,
+        title="Смещение (сдвиг) для перехода по страницам.",
+        description="Количество списков, которое нужно пропустить от начала."
+    ),
     user: UserReadSchema = Depends(get_user_status_by_token),
 ):
     result = await todo_lists.get_lists(
         id_user=user.id_user,
+        limit=limit,
+        offset=offset,
     )
     return result
 
@@ -79,7 +92,7 @@ async def edit_list(
     if edited_lst is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="List or user not found"
+            detail="List not found" # была ошибка и по юзеру, убрал
         )
     return edited_lst
 
@@ -100,7 +113,7 @@ async def delete_list(
     if deleted_list is False:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="List or user not found")
+            detail="List not found") # была ошибка и по юзеру, убрал
 
     return None
 
@@ -109,67 +122,67 @@ async def delete_list(
 admin = APIRouter(tags=["Admin"])
 
 
-@admin.post(
-    "/users/{id_user}/todo_lists", # доступ к листу по идентификатору пользователя
-    tags=["Admin"],
-    summary="Добавить лист задач для указанного пользователя",
-    status_code=status.HTTP_201_CREATED,
-    response_model=ListResponseSchema,
-    )
-async def add_list(
-    id_user: int,
-    lst: ListAddSchema,
-):
-    new_lst = await todo_lists_crud.add_todo_lists(
-        id_user=id_user,
-        lst=lst,
-    )
-    return new_lst
+# @admin.post(
+#     "/users/{id_user}/todo_lists", # доступ к листу по идентификатору пользователя
+#     tags=["Admin"],
+#     summary="Добавить лист задач для указанного пользователя",
+#     status_code=status.HTTP_201_CREATED,
+#     response_model=ListResponseSchema,
+#     )
+# async def add_list(
+#     id_user: int,
+#     lst: ListAddSchema,
+# ):
+#     new_lst = await todo_lists_crud.add_todo_lists(
+#         id_user=id_user,
+#         lst=lst,
+#     )
+#     return new_lst
 
-@admin.get(
-    "/users/{id_user}/todo_lists",
-    tags=["Admin"],
-    summary="Показать все листы задач указанного пользователя",
-    status_code=status.HTTP_200_OK,
-    response_model=list[ListResponseSchema], # вернуть список схем, тк листов несколько
-)
-async def get_lists(id_user: int):
-    result = await todo_lists_crud.get_lists(
-        id_user=id_user,
-    )
-    return result
+# @admin.get(
+#     "/users/{id_user}/todo_lists",
+#     tags=["Admin"],
+#     summary="Показать все листы задач указанного пользователя",
+#     status_code=status.HTTP_200_OK,
+#     response_model=list[ListResponseSchema], # вернуть список схем, тк листов несколько
+# )
+# async def get_lists(id_user: int):
+#     result = await todo_lists_crud.get_lists(
+#         id_user=id_user,
+#     )
+#     return result
 
-@admin.patch(
-    "/users/{id_user}/todo_lists/{id_list}",
-    tags=["Admin"],
-    summary="Обновить часть данных листа задач",
-    status_code=status.HTTP_200_OK,
-    response_model=ListResponseSchema,
-)
-async def edit(
-    id_user: int,
-    id_list: int,
-    data: ListPatchSchema,
-):
-    edited_lst = await todo_lists_crud.patch_list(
-        id_user=id_user,
-        id_list=id_list,
-        data=data,
-    )
-    return edited_lst
+# @admin.patch(
+#     "/users/{id_user}/todo_lists/{id_list}",
+#     tags=["Admin"],
+#     summary="Обновить часть данных листа задач",
+#     status_code=status.HTTP_200_OK,
+#     response_model=ListResponseSchema,
+# )
+# async def edit(
+#     id_user: int,
+#     id_list: int,
+#     data: ListPatchSchema,
+# ):
+#     edited_lst = await todo_lists_crud.patch_list(
+#         id_user=id_user,
+#         id_list=id_list,
+#         data=data,
+#     )
+#     return edited_lst
 
-@admin.delete(
-    "/users/{id_user}/todo_lists/{id_list}",
-    tags=["Admin"],
-    summary="Удалить лист задач",
-    status_code=status.HTTP_204_NO_CONTENT
-)
-async def delete_lst(
-    id_user: int,
-    id_list: int,
-):
-    await todo_lists_crud.delete_list(
-        id_user=id_user,
-        id_list=id_list,
-    )
-    return None
+# @admin.delete(
+#     "/users/{id_user}/todo_lists/{id_list}",
+#     tags=["Admin"],
+#     summary="Удалить лист задач",
+#     status_code=status.HTTP_204_NO_CONTENT
+# )
+# async def delete_lst(
+#     id_user: int,
+#     id_list: int,
+# ):
+#     await todo_lists_crud.delete_list(
+#         id_user=id_user,
+#         id_list=id_list,
+#     )
+#     return None

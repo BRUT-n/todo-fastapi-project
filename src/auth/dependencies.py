@@ -110,7 +110,7 @@ async def get_user_status_by_token(
 
     # return user
 
-    # использование уже уникального АЙДИ вместо емейла
+    # использование уникального АЙДИ вместо емейла
     sub = payload.get("sub")
     if not sub:
         raise TokenMissingSubException()
@@ -118,7 +118,7 @@ async def get_user_status_by_token(
     try:
         user_id = int(sub)
     except (ValueError, TypeError):
-        raise TokenInvalidException
+        raise TokenInvalidException()
 
     user = await auth_crud.get_user_by_id(user_id=user_id)
 

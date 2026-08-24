@@ -21,6 +21,7 @@ def test_hash_password():
     assert hashed_test_password_1 != hashed_test_password_2
     assert isinstance(hashed_test_password_1, bytes)
 
+
 def test_validate_password():
     """
     Проверка пароля по хешу.
@@ -33,6 +34,7 @@ def test_validate_password():
 
     assert validate_password(correct_password, correct_hash) is True
     assert validate_password(wrong_password, correct_hash) is False
+
 
 def test_encode_jwt_without_expire_time():
     """
@@ -54,6 +56,7 @@ def test_encode_jwt_without_expire_time():
     assert decoded_token["name"] == "Name"
     assert decoded_token["user_id"] == 1
 
+
 @freeze_time("2026-07-13 12:00:00")
 def test_encode_jwt_and_expire_minutes():
     """
@@ -74,6 +77,7 @@ def test_encode_jwt_and_expire_minutes():
     expected_expire_time = time.time() + (settings.auth.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
 
     assert expire_time_from_token == expected_expire_time
+
 
 @freeze_time("2026-07-13 12:00:00")
 def test_encode_jwt_and_expire_time_delta():

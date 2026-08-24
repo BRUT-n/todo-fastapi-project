@@ -1,4 +1,5 @@
-.PHONY: run test db-start db-stop app-start stop docker-app-run docker-app-stop
+# указание, что перечисленные слова не являются файлами и используются как команды
+.PHONY: run db-start db-stop app-start stop docker-app-run docker-app-stop test test-api test-crud test-auth
 
 PYTHONPATH = .
 CONTAINER_NAME = todo_app_postgres_db
@@ -36,5 +37,28 @@ docker-app-stop:
 	@echo "Остановка приложения полностью"
 	docker compose down
 
+PYTEST = uv run pytest
+
 test:
-	@echo "No tests yet"
+	@echo "ЗАПУСК ВСЕХ ТЕСТОВ"
+	$(PYTEST) tests/unit/
+
+test-api:
+	@echo "ЗАПУСК API ТЕСТОВ"
+
+	$(PYTEST) tests/unit/ -k "test_api_"
+
+test-crud:
+	@echo "ЗАПУСК CRUD ТЕСТОВ"
+
+	$(PYTEST) tests/unit/ -k "test_crud_"
+
+test-auth:
+	@echo "ЗАПУСК AUTH ТЕСТОВ"
+
+	$(PYTEST) tests/unit/ -k "test_auth_"
+
+test-cov:
+	@echo "ПРОВЕРКА ПОКРЫТИЯ ТЕСТОВ"
+
+	$(PYTEST) --cov=src --cov-report=html
