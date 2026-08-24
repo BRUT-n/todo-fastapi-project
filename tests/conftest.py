@@ -1,12 +1,9 @@
 import pytest
 import pytest_asyncio
-import src.database.config
-import src.database.crud.auth
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from src.auth.utils import hash_password
 from src.database.config import Base
 from src.database.tables import ListsORM, TasksORM, UsersORM
-from src.models.schemas import ListAddSchema, TaskAddSchema
 from testcontainers.postgres import PostgresContainer
 
 
@@ -17,6 +14,7 @@ def postgres_container():
     """
     with PostgresContainer("postgres:17-alpine") as db:
         yield db
+
 
 @pytest_asyncio.fixture(scope="session")
 async def test_engine(postgres_container):
@@ -44,6 +42,7 @@ async def test_connection(test_engine):
             yield conn
             # После выхода из теста откатываем транзакцию на соединении
             await transaction.rollback()
+
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
 async def override_session_factory(test_connection, monkeypatch):
@@ -77,6 +76,7 @@ async def session(override_session_factory):
     """
     async with override_session_factory() as session:
         yield session
+
 
 
 
@@ -135,4 +135,44 @@ async def create_test_task(session, create_test_todo_list):
 
     return task
 
+@pytest_asyncio.fixture(scope="function")
+async def create_many_test_todo_lists(session, create_test_user):
+    """
+    Фикстура-фабрика создания N списков задач для проверки пагинации в тестах.
+    """
+    async def _create_lists(count: int = 8):
+        lists = [
+            ListsORM(
+                title=f"Test List {i + 1}",
+                description=f"Info about {i + 1} list",
+                user_id=create_test_user.id_user,
+            )
+            for i in range(count)
+        ]
 
+        session.add_all(lists)
+        await session.commit()
+        return lists
+
+    return _create_lists
+
+@pytest_asyncio.fixture(scope="function")
+async def create_many_test_tasks(session, create_test_todo_list):
+    """
+    Фикстура-фабрика создания N задач для проверки пагинации в тестах.
+    """
+    async def _create_tasks(count: int = 14):
+        tasks = [
+            TasksORM(
+                task_name=f"Test Task {i + 1}",
+                completed=False,
+                list_id=create_test_todo_list.id_list,
+            )
+            for i in range(count)
+        ]
+
+        session.add_all(tasks)
+        await session.commit()
+        return tasks
+
+    return _create_tasks

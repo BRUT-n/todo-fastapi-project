@@ -94,57 +94,57 @@ async def delete_user(
 
 # админские и неиспользуемые функции
 
-async def add_user(
-    user: UserAddSchema,
-    # session: AsyncSession,
-):
-    """
-    Админская функция, не используется пользователями
-    """
-    async with session_factory() as session:
-        query = (
-            select(UsersORM)
-            .where(UsersORM.email == user.email) # проверка мейла из базы и переданного на уникальность
-        )
-        result = await session.execute(query)
-        existing_mail = result.scalar_one_or_none()
+# async def add_user(
+#     user: UserAddSchema,
+#     # session: AsyncSession,
+# ):
+#     """
+#     Админская функция, не используется пользователями
+#     """
+#     async with session_factory() as session:
+#         query = (
+#             select(UsersORM)
+#             .where(UsersORM.email == user.email) # проверка мейла из базы и переданного на уникальность
+#         )
+#         result = await session.execute(query)
+#         existing_mail = result.scalar_one_or_none()
 
-        if existing_mail:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT, # ошибка конфликта на сервере
-                detail="Email already registered")
+#         if existing_mail:
+#             raise HTTPException(
+#                 status_code=status.HTTP_409_CONFLICT, # ошибка конфликта на сервере
+#                 detail="Email already registered")
 
-        new_user = UsersORM(
-            name=user.name, # данные name модели ОРМ берутся из схемы переданой в аргумент
-            email=user.email,
-        )
+#         new_user = UsersORM(
+#             name=user.name, # данные name модели ОРМ берутся из схемы переданой в аргумент
+#             email=user.email,
+#         )
 
-        session.add(new_user) # await не надо, потому что нет обращения к БД
-        await session.commit()
-        await session.refresh(new_user) # обновляет данные в памяти, чтобы вернуть то что база заполнила сама
+#         session.add(new_user) # await не надо, потому что нет обращения к БД
+#         await session.commit()
+#         await session.refresh(new_user) # обновляет данные в памяти, чтобы вернуть то что база заполнила сама
 
-        return new_user
-    # {"ok": True,
-    #         "message": "User added",
-    #         "user_id": new_user.id_user} # выдает присвоенный айди юзера, работает только с refresh
+#         return new_user
+#     # {"ok": True,
+#     #         "message": "User added",
+#     #         "user_id": new_user.id_user} # выдает присвоенный айди юзера, работает только с refresh
 
-"""
-Проблема асинхронности (ошибка greenlet)
-await session.refresh(new_user) делает микрозапрос на обновление данных вытягивая из БД
-нужен для возврата созданного ID или любые поля, которые заполняет база
-"""
+# """
+# Проблема асинхронности (ошибка greenlet)
+# await session.refresh(new_user) делает микрозапрос на обновление данных вытягивая из БД
+# нужен для возврата созданного ID или любые поля, которые заполняет база
+# """
 
 
-async def get_users(): #(session: AsyncSession):
-    """
-    Админская функция, не используется пользователями
-    """
-    async with session_factory() as session:
-        query = select(UsersORM)
-        result = await session.execute(query)
+# async def get_users(): #(session: AsyncSession):
+#     """
+#     Админская функция, не используется пользователями
+#     """
+#     async with session_factory() as session:
+#         query = select(UsersORM)
+#         result = await session.execute(query)
 
-        users = result.scalars().all() # scalars() распаковывает кортежи для удобства чтения и доступа через срезы
-        return users
+#         users = result.scalars().all() # scalars() распаковывает кортежи для удобства чтения и доступа через срезы
+#         return users
 
 
 # @router.put("/users/{user_id}", tags=["Пользователи"], summary="Обновить все данные пользователя", status_code=status.HTTP_200_OK) # заменяет все свойства

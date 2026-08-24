@@ -5,11 +5,10 @@ from src.database.crud.auth import (  #get_user_by_email
     get_user_by_id,
     get_user_by_username,
 )
-from src.database.tables import UsersORM  # Ваша ORM модель
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_create_user():
+async def test_create_user_success():
     # 1. Arrange: Создаем тестового пользователя
     user_data = {
         "username" : "UniqueUsername",
@@ -33,15 +32,15 @@ async def test_create_user():
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_user_by_username(create_test_user):
     # 1. Arrange: Создаем тестового пользователя
-    existed_user = create_test_user
-    users_username = existed_user.username
+    existing_user = create_test_user
+    users_username = existing_user.username
 
     result = await get_user_by_username(users_username)
 
     assert result is not None
-    assert result.username == existed_user.username
-    assert result.name == existed_user.name
-    assert result.hashed_password == existed_user.hashed_password
+    assert result.username == existing_user.username
+    assert result.name == existing_user.name
+    assert result.hashed_password == existing_user.hashed_password
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -52,15 +51,17 @@ async def test_get_user_by_username_not_found():
     # Assert: Функция должна вернуть None
     assert result is None
 
-@pytest.mark.asyncio(loop_scope="session")
-async def test_get_user_by_id(create_test_user):
-    existed_user = create_test_user
 
-    result = await get_user_by_id(user_id=existed_user.id_user)
+@pytest.mark.asyncio(loop_scope="session")
+async def test_get_user_by_id_success(create_test_user):
+    existing_user = create_test_user
+
+    result = await get_user_by_id(user_id=existing_user.id_user)
 
     assert result is not None
-    assert result.id_user == existed_user.id_user
-    assert result.email == existed_user.email
+    assert result.id_user == existing_user.id_user
+    assert result.email == existing_user.email
+
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_user_by_id_not_found():
@@ -68,15 +69,16 @@ async def test_get_user_by_id_not_found():
 
     assert result is None
 
+
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_user_status_by_token_success(create_test_user):
     # 1. Arrange: Формируем payload, где sub — это строка с id_user
-    existed_user = create_test_user
-    payload = {"sub": str(existed_user.id_user)}
+    existing_user = create_test_user
+    payload = {"sub": str(existing_user.id_user)}
 
     # 2. Act: Передаем payload в нашу переписанную зависимость
     user = await get_user_status_by_token(payload=payload)
 
     # 3. Assert
     assert user is not None
-    assert user.id_user == existed_user.id_user
+    assert user.id_user == existing_user.id_user

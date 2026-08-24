@@ -1,5 +1,5 @@
-
 from typing import Sequence
+
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,50 +52,27 @@ async def add_task(
 async def get_all_tasks(
     id_user: int,
     id_list: int,
+    limit: int = 5,
+    offset: int = 0,
     # session: AsyncSession
 ) -> Sequence[TasksORM]:
     async with session_factory() as session:
         query = (
             select(TasksORM)
-            .join(ListsORM) # джоин для проверки и юзера и листа, тк юзера нет в тасках
+            .join(ListsORM) # джоин для проверки и юзера и листа, тк юзера_айди нет в тасках
             .where(
                 TasksORM.list_id == id_list,
-                ListsORM.user_id == id_user)
+                ListsORM.user_id == id_user
+            )
+            .order_by(TasksORM.id_task) # сортировка для предсказуемости вывода
+            .limit(limit) # лимит вывода строк
+            .offset(offset) # смещение - сколько пропускать строк считая от первой строки
         )
 
         result = await session.execute(query)
         tsks = result.scalars().all()
 
         return tsks
-
-
-# @router.put(
-#     "/users/todo_lists/{id_task}",
-#     tags=["Задачи"],
-#     summary="Обновить все данные задачи",
-#     status_code=status.HTTP_200_OK,
-#     response_model=TaskResponseSchema,
-#     )
-# async def update_task(
-#     id_task_to_update: int,
-#     data: TaskUpdateSchema,
-#     session: AsyncSession,
-# ):
-#     query = select(TasksORM).where(TasksORM.id_task == id_task_to_update)
-#     result = await session.execute(query)
-#     tsk = result.scalar_one_or_none
-
-#     if tsk is None:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-
-#     data_dict = data.model_dump()
-#     for field_name, new_value in data_dict.items():
-#         setattr(tsk, field_name, new_value)
-
-#     await session.commit()
-#     await session.refresh(tsk)
-
-#     return tsk
 
 
 async def patch_task(
@@ -155,3 +132,34 @@ async def delete_task(
         await session.commit()
 
         return True
+
+
+# не используется
+
+# @router.put(
+#     "/users/todo_lists/{id_task}",
+#     tags=["Задачи"],
+#     summary="Обновить все данные задачи",
+#     status_code=status.HTTP_200_OK,
+#     response_model=TaskResponseSchema,
+#     )
+# async def update_task(
+#     id_task_to_update: int,
+#     data: TaskUpdateSchema,
+#     session: AsyncSession,
+# ):
+#     query = select(TasksORM).where(TasksORM.id_task == id_task_to_update)
+#     result = await session.execute(query)
+#     tsk = result.scalar_one_or_none
+
+#     if tsk is None:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+
+#     data_dict = data.model_dump()
+#     for field_name, new_value in data_dict.items():
+#         setattr(tsk, field_name, new_value)
+
+#     await session.commit()
+#     await session.refresh(tsk)
+
+#     return tsk

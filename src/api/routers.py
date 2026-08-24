@@ -6,7 +6,8 @@ from src.api.tasks import admin as admin_tasks_router
 from src.api.tasks import router as tasks_router
 from src.api.todo_lists import admin as admin_lists_router
 from src.api.todo_lists import router as todo_list_router
-from src.api.users import admin as admin_users_router
+
+# from src.api.users import admin as admin_users_router
 from src.api.users import router as user_router
 
 # from src.demo_auth.views import router as demo_auth_router

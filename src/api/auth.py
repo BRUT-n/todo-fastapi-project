@@ -33,7 +33,8 @@ async def register_new_user(
 @router.post(
     "/login",
     summary="Вход с логином и паролем для получения токена (в том числе для сохранения в памяти приложения)",
-    response_model=TokenInfo
+    response_model=TokenInfo,
+    status_code=status.HTTP_200_OK,
     )
 async def login_for_access_token(
     user: UsersORM = Depends(validate_credentials),
@@ -61,7 +62,8 @@ async def login_for_access_token(
 @router.get(
     "/me",
     summary="Данные пользователя",
-    response_model=UserReadSchema
+    response_model=UserReadSchema,
+    status_code=status.HTTP_200_OK
 )
 async def get_me(
     user: UserReadSchema = Depends(get_user_status_by_token)
