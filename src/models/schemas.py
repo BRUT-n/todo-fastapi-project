@@ -23,21 +23,21 @@ class UserPatchSchema(BaseModel): # частичная замена данных
     перенаследование от базы, потому что
     переопределение с обязательной на необязательную не круто
     """
-    username: str | None = Field(None, min_length=6, max_length=32)
-    name: str | None = Field(None, min_length=2, max_length=32)
+    username: str | None = Field(default=None, min_length=6, max_length=32)
+    name: str | None = Field(default=None, min_length=2, max_length=32)
     email: EmailStr | None = None
     model_config = ConfigDict(extra="forbid")
 
 
 class ListPatchSchema(BaseModel):
-    title: str | None = Field(None, min_length=1, max_length=32) #  (...) называются Ellipsis, означают, что поле является обязательным
-    description: str | None = Field(None, min_length=1, max_length=256)
+    title: str | None = Field(default=None, min_length=1, max_length=32) #  (...) называются Ellipsis, означают, что поле является обязательным
+    description: str | None = Field(default=None, min_length=1, max_length=256)
     # user_id: int | None = Field(None, ge=1) # запрещает 0
 
 
 class TaskPatchSchema(BaseModel):
-    task_name: str | None = Field(None, min_length=4, max_length=64)
-    completed: bool | None = Field(None)
+    task_name: str | None = Field(default=None, min_length=4, max_length=64)
+    completed: bool | None = Field(default=None)
     # По умолчанию None. Если в JSON поля нет — будет None. А model_dump(exclude_unset=True) не возьмет Ноне в словарь
     # list_id: int | None = Field(None, ge=1) # запрещает 0
 
