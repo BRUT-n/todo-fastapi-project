@@ -9,8 +9,10 @@ class AppSettings(BaseModel):
     VERSION: str = "0.1.0"
     DEBUG: bool = False
 
+
 class DataBaseSettings(BaseModel):
     URL: str = "postgresql+asyncpg://brutn:brutn@localhost:5432/todo_app_db"
+
 
 class AuthSettings(BaseModel):
     JWT_PRIVATE_KEY_PATH: Path = Path("certs/jwt-private-key.pem")
@@ -27,7 +29,9 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="__", extra="ignore")
 
+
 settings = Settings()
+
 
 print(f"DEBUG MODE IS: {settings.app.DEBUG}")
 print(f"DATABASE URL IS: {settings.db.URL}")

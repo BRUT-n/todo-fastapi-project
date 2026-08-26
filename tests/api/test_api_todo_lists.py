@@ -2,8 +2,7 @@ import pytest
 from fastapi import status
 from httpx import AsyncClient
 from pydantic import TypeAdapter
-from src.database.tables import ListsORM, UsersORM
-from src.models.schemas import ListPatchSchema, ListResponseSchema
+from src.models.schemas import ListResponseSchema
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -69,7 +68,6 @@ async def test_post_new_list_unauthorized(ac: AsyncClient):
     )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
-# найдена лишняя логика в add_todo_list + тесты, закоменчено
 
 
 @pytest.mark.asyncio(loop_scope="session")

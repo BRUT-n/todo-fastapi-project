@@ -1,20 +1,16 @@
-from fastapi import APIRouter, Depends, Form, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, status
 
 from src.auth import utils as auth_utils
 from src.auth.dependencies import (
-    get_token_payload,
     get_user_status_by_token,
     register_user,
     validate_credentials,
 )
 from src.auth.schemas import (
     TokenInfo,
-    UserAuthSchema,
     UserReadSchema,
     UserRegisterSchema,
 )
-from src.database.config import session_factory  #, get_session
 from src.database.tables import UsersORM
 
 router = APIRouter(prefix="/auth", tags=["Авторизация"])
@@ -39,12 +35,6 @@ async def register_new_user(
 async def login_for_access_token(
     user: UsersORM = Depends(validate_credentials),
 ):
-
-    # jwt_payload = {
-    #     "sub": user.email,
-    #     "name": user.name,
-    #     "user_id": user.id_user,
-    # }
 
     jwt_payload = {
         "sub": str(user.id_user), # зашить уникальный АДЙДИ вместо емейла

@@ -1,9 +1,6 @@
 import jwt  # используется pyjwt (см uv.lock)
-from fastapi import Depends, Form, HTTPException, status
+from fastapi import Depends, Form
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import EmailStr
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import utils as auth_utils
 from src.auth.exceptions import (
@@ -15,7 +12,6 @@ from src.auth.exceptions import (
     TokenUserNotFoundException,
 )
 from src.auth.schemas import UserRegisterSchema
-from src.database.config import session_factory  #get_session
 from src.database.crud import auth as auth_crud
 from src.database.tables import UsersORM
 
@@ -23,7 +19,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 async def register_user(
     user_data: UserRegisterSchema,
-    # session: AsyncSession = Depends(get_session)
 ) -> UsersORM:
     """
     Регистрация пользователя.
@@ -50,7 +45,6 @@ async def register_user(
 async def validate_credentials(
     username: str = Form(),
     password: str = Form(),
-    # session: AsyncSession = Depends(get_session)
 ) -> UsersORM:
     """
     Логин пользователя.
@@ -92,24 +86,12 @@ async def get_token_payload(
 
 async def get_user_status_by_token(
     payload: dict = Depends(get_token_payload),
-    # session: AsyncSession = Depends(get_session)
 ) -> UsersORM:
     """
     Проверяет наличие в БД юзера на основе данных из полезной нагрузки токена.
     Обращается напрямую к свежей БД для подтверждения доступа пользователя.
     Необходим для дополнительной проверки юзера-статуса в БД по полю АЙДИ (не почты).
     """
-    # email = payload.get("sub") # найти уникальный емейл
-    # if not email:
-    #     raise TokenMissingSubException()
-
-    # user = await auth_crud.get_user_by_email(email=email)
-
-    # if user is None:
-    #     raise TokenUserNotFoundException()
-
-    # return user
-
     # использование уникального АЙДИ вместо емейла
     sub = payload.get("sub")
     if not sub:

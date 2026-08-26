@@ -1,8 +1,8 @@
 import pytest
-from fastapi import responses, status
+from fastapi import status
 from httpx import AsyncClient
 from pydantic import TypeAdapter
-from src.models.schemas import TaskAddSchema, TaskResponseSchema
+from src.models.schemas import TaskResponseSchema
 
 
 @pytest.mark.asyncio(loop_scope="session")

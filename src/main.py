@@ -20,6 +20,7 @@ async def lifespan(app: FastAPI):
     # --- ЭТО БЛОК SHUTDOWN (Выполняется один раз при выключении) ---
     await engine.dispose() # закрывает каналы связи
 
+
 # Подключаем логику к приложению
 app = FastAPI(
     lifespan=lifespan,

@@ -1,4 +1,3 @@
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from src.auth.utils import encode_jwt_token

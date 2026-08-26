@@ -31,7 +31,6 @@ async def test_create_user_success():
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_user_by_username(create_test_user):
-    # 1. Arrange: Создаем тестового пользователя
     existing_user = create_test_user
     users_username = existing_user.username
 
@@ -45,10 +44,8 @@ async def test_get_user_by_username(create_test_user):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_user_by_username_not_found():
-    # Act: Ищем несуществующего пользователя
     result = await get_user_by_username("WrongUsername")
 
-    # Assert: Функция должна вернуть None
     assert result is None
 
 
@@ -72,13 +69,10 @@ async def test_get_user_by_id_not_found():
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_user_status_by_token_success(create_test_user):
-    # 1. Arrange: Формируем payload, где sub — это строка с id_user
     existing_user = create_test_user
     payload = {"sub": str(existing_user.id_user)}
 
-    # 2. Act: Передаем payload в нашу переписанную зависимость
     user = await get_user_status_by_token(payload=payload)
 
-    # 3. Assert
     assert user is not None
     assert user.id_user == existing_user.id_user

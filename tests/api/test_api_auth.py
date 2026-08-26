@@ -1,7 +1,6 @@
 import pytest
 from fastapi import status
 from httpx import AsyncClient
-from src.auth.schemas import TokenInfo, UserReadSchema
 from src.database.tables import UsersORM
 
 

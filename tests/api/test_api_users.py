@@ -4,7 +4,6 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.crud.auth import get_user_by_id
 from src.database.tables import UsersORM
-from src.models.schemas import UserPatchSchema, UserResponseSchema
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -118,7 +117,7 @@ async def test_patch_profile_with_patch_schema_failed(ac: AsyncClient, auth_head
     )
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
-    assert "detail" in response.json() # !!!посмотреть вообще какие есть поля
+    assert "detail" in response.json()
 
 
 @pytest.mark.asyncio(loop_scope="session")

@@ -1,15 +1,12 @@
 from typing import Sequence
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.config import session_factory
-from src.database.tables import ListsORM, TasksORM, UsersORM
+from src.database.tables import ListsORM, TasksORM
 from src.models.schemas import (
     TaskAddSchema,
     TaskPatchSchema,
-    TaskResponseSchema,
-    TaskUpdateSchema,
 )
 
 router = APIRouter()
@@ -19,7 +16,6 @@ async def add_task(
     id_user: int,
     id_list: int,
     tsk: TaskAddSchema,
-    # session: AsyncSession,
 ) -> None | TasksORM:
     async with session_factory() as session:
         query = select(ListsORM).where(
@@ -54,7 +50,6 @@ async def get_all_tasks(
     id_list: int,
     limit: int = 5,
     offset: int = 0,
-    # session: AsyncSession
 ) -> Sequence[TasksORM]:
     async with session_factory() as session:
         query = (
@@ -80,7 +75,6 @@ async def patch_task(
     id_user: int,
     id_list: int,
     data: TaskPatchSchema,
-    # session: AsyncSession,
 ) -> None | TasksORM:
     async with session_factory() as session:
         query = (
@@ -111,7 +105,6 @@ async def delete_task(
     id_task: int,
     id_user: int,
     id_list: int,
-    # session: AsyncSession
 ):
     async with session_factory() as session:
         query = (
@@ -132,34 +125,3 @@ async def delete_task(
         await session.commit()
 
         return True
-
-
-# не используется
-
-# @router.put(
-#     "/users/todo_lists/{id_task}",
-#     tags=["Задачи"],
-#     summary="Обновить все данные задачи",
-#     status_code=status.HTTP_200_OK,
-#     response_model=TaskResponseSchema,
-#     )
-# async def update_task(
-#     id_task_to_update: int,
-#     data: TaskUpdateSchema,
-#     session: AsyncSession,
-# ):
-#     query = select(TasksORM).where(TasksORM.id_task == id_task_to_update)
-#     result = await session.execute(query)
-#     tsk = result.scalar_one_or_none
-
-#     if tsk is None:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
-
-#     data_dict = data.model_dump()
-#     for field_name, new_value in data_dict.items():
-#         setattr(tsk, field_name, new_value)
-
-#     await session.commit()
-#     await session.refresh(tsk)
-
-#     return tsk

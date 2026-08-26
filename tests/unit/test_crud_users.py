@@ -77,24 +77,3 @@ async def test_delete_user_not_found():
     result = await delete_user(user_id=99999)
 
     assert result is None
-
-
-# уникальность теперь проверяется на уровне роута, тест не актуален
-
-# @pytest.mark.asyncio(loop_scope="session")
-# async def test_patch_user_email_already_exists(session: AsyncSession, create_test_user: UsersORM):
-
-#     second_user = UsersORM(
-#         name="Name2",
-#         email="name2mail@test.com",
-#         hashed_password=b"secret_password2"
-#     )
-
-#     session.add(second_user)
-#     await session.commit()
-#     await session.refresh(second_user)
-
-#     patch_data = UserPatchSchema(email="mail_to_patch")
-#     updated_user = await patch_user(user_id=second_user.id_user, data=patch_data)
-
-#     assert updated_user is False

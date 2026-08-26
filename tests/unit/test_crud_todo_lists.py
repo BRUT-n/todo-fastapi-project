@@ -23,15 +23,6 @@ async def test_add_todo_list_success(create_test_user: UsersORM):
     assert new_list.id_list is not None
     assert new_list.user_id == existing_user.id_user
 
-# === ЛИШНЯЯ ЛОГИКА? ===
-
-# @pytest.mark.asyncio(loop_scope="session")
-# async def test_add_todo_list_user_not_found():
-#     list_to_create = ListAddSchema(title=TITLE_DATA, description=DESCRIPTION_DATA)
-#     new_list = await add_todo_lists(id_user=99999, lst=list_to_create)
-
-#     assert new_list is None
-
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_get_lists_success(create_test_todo_list: ListsORM):

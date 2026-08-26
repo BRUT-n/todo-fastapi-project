@@ -175,3 +175,4 @@ certs/
 learning/
 htmlcov/
 notes.md
+.ruff_cache/
