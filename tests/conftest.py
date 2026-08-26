@@ -6,6 +6,9 @@ from src.database.config import Base
 from src.database.tables import ListsORM, TasksORM, UsersORM
 from testcontainers.postgres import PostgresContainer
 
+DEFAULT_TODO_LIST_COUNT = 8
+DEFAULT_TASKS_COUNT = 14
+
 
 @pytest.fixture(scope="session", autouse=True)
 def postgres_container():
@@ -78,8 +81,6 @@ async def session(override_session_factory):
         yield session
 
 
-
-
 @pytest_asyncio.fixture(scope="function")
 async def create_test_user(session):
     """
@@ -99,6 +100,7 @@ async def create_test_user(session):
 
     return user
 
+
 @pytest_asyncio.fixture(scope="function")
 async def create_test_todo_list(session, create_test_user):
     """
@@ -116,6 +118,7 @@ async def create_test_todo_list(session, create_test_user):
     await session.refresh(todo_lst)
 
     return todo_lst
+
 
 @pytest_asyncio.fixture(scope="function")
 async def create_test_task(session, create_test_todo_list):
@@ -135,12 +138,13 @@ async def create_test_task(session, create_test_todo_list):
 
     return task
 
+
 @pytest_asyncio.fixture(scope="function")
 async def create_many_test_todo_lists(session, create_test_user):
     """
     Фикстура-фабрика создания N списков задач для проверки пагинации в тестах.
     """
-    async def _create_lists(count: int = 8):
+    async def _create_lists(count: int = DEFAULT_TODO_LIST_COUNT):
         lists = [
             ListsORM(
                 title=f"Test List {i + 1}",
@@ -156,12 +160,13 @@ async def create_many_test_todo_lists(session, create_test_user):
 
     return _create_lists
 
+
 @pytest_asyncio.fixture(scope="function")
 async def create_many_test_tasks(session, create_test_todo_list):
     """
     Фикстура-фабрика создания N задач для проверки пагинации в тестах.
     """
-    async def _create_tasks(count: int = 14):
+    async def _create_tasks(count: int = DEFAULT_TASKS_COUNT):
         tasks = [
             TasksORM(
                 task_name=f"Test Task {i + 1}",

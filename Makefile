@@ -1,5 +1,6 @@
 # указание, что перечисленные слова не являются файлами и используются как команды
 .PHONY: run db-start db-stop app-start stop docker-app-run docker-app-stop test test-api test-crud test-auth
+lint format check test
 
 PYTHONPATH = .
 CONTAINER_NAME = todo_app_postgres_db
@@ -41,12 +42,12 @@ PYTEST = uv run pytest
 
 test:
 	@echo "ЗАПУСК ВСЕХ ТЕСТОВ"
-	$(PYTEST) tests/unit/
+	$(PYTEST) tests/
 
 test-api:
 	@echo "ЗАПУСК API ТЕСТОВ"
 
-	$(PYTEST) tests/unit/ -k "test_api_"
+	$(PYTEST) tests/api/ -k "test_api_"
 
 test-crud:
 	@echo "ЗАПУСК CRUD ТЕСТОВ"
@@ -62,3 +63,16 @@ test-cov:
 	@echo "ПРОВЕРКА ПОКРЫТИЯ ТЕСТОВ"
 
 	$(PYTEST) --cov=src --cov-report=html
+
+
+# lint:
+# 	ruff check .
+
+# lint-fix:
+# 	ruff check . --fix
+
+# format:
+# 	ruff format .
+
+# check: lint format
+# 	pytest
