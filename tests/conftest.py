@@ -138,20 +138,6 @@ async def create_test_task(session, create_test_todo_list):
 
     return task
 
-@pytest_asyncio.fixture(scope="function")
-async def create_many_test_todo_lists(session, create_test_user):
-    """
-    Фикстура-фабрика создания N списков задач для проверки пагинации в тестах.
-    """
-    async def _create_lists(count: int = 8):
-        lists = [
-            ListsORM(
-                title=f"Test List {i + 1}",
-                description=f"Info about {i + 1} list",
-                user_id=create_test_user.id_user,
-            )
-            for i in range(count)
-        ]
 
 @pytest_asyncio.fixture(scope="function")
 async def create_many_test_todo_lists(session, create_test_user):
