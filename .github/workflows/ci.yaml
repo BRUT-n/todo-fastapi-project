@@ -1,0 +1,56 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches:
+      - '**' # Запуск при любом пуше в любую ветку
+  pull_request:
+    branches: [ main ] # Запуск при создании PR в ветку main
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+
+    # Поднимаем PostgreSQL в Docker прямо на сервере GitHub
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: brutn
+          POSTGRES_PASSWORD: secret_password
+          POSTGRES_DB: todo_app_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # Переменные окружения, которые твой Python-код считает при запуске тестов
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USER: brutn
+      DB_PASSWORD: secret_password
+      DB_NAME: todo_app_test_db
+      SECRET_KEY: ci_secret_key_for_jwt_testing
+
+    steps:
+      # 1. Скачиваем код на сервер GitHub через плагин
+      - name: Clone code to runner
+        uses: actions/checkout@v7
+
+      # 2. Установка `uv` через их плагин
+      - name: Install uv tool
+        uses: astral-sh/setup-uv
+        with:
+          version: "latest"
+
+      # 3. Устновка необходимых зависимостей из uv.lock / pyproject.toml
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      # 4. Запуск комплексной проверки из Makefile
+      - name: Run Quality Gate Checks
+        run: make check
