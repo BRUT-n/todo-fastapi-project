@@ -60,8 +60,8 @@ jobs:
           
           # Создаем реальную папку certs, которую ждет ваш Dockerfile при сборке
           mkdir -p certs
-          openssl genpkey -algorithm RSA -out certs/tmp/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
-          openssl rsa -pubout -in certs/jwt-private-key.pem -out certs/tmp/jwt-public-key.pem
+          openssl genpkey -algorithm RSA -out certs/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
+          openssl rsa -pubout -in certs/jwt-private-key.pem -out certs/jwt-public-key.pem
 
       # 5. Запускаем всю вашу инфраструктуру (FastAPI + Postgres) в фоне через Docker Compose
       - name: Start Application Stack
@@ -71,8 +71,8 @@ jobs:
       - name: Run Quality Gate Checks
         env:
           # Магия вложенности Pydantic:auth__имя_переменной
-          auth__JWT_PRIVATE_KEY_PATH: "certs/tmp/jwt-private-key.pem"
-          auth__JWT_PUBLIC_KEY_PATH: "certs/tmp/jwt-public-key.pem"
+          auth__JWT_PRIVATE_KEY_PATH: "certs/jwt-private-key.pem"
+          auth__JWT_PUBLIC_KEY_PATH: "certs/jwt-public-key.pem"
           app__E2E_BASE_URL: "http://127.0.0.1:8000" 
         run: make check
 
