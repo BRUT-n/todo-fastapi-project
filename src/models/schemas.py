@@ -3,9 +3,13 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 # валидация данных pydentic при создании
 class UserAddSchema(BaseModel):
-    name: str = Field(..., min_length=2, max_length=32) # валидация длины перед отправкой в БД!
+    name: str = Field(
+        ..., min_length=2, max_length=32
+    )  # валидация длины перед отправкой в БД!
     email: EmailStr
-    model_config = ConfigDict(extra="forbid") # запрет на лишние данные работает только в пайдентик
+    model_config = ConfigDict(
+        extra="forbid"
+    )  # запрет на лишние данные работает только в пайдентик
 
 
 class ListAddSchema(BaseModel):
@@ -19,11 +23,12 @@ class TaskAddSchema(BaseModel):
     completed: bool = Field(default=False)
 
 
-class UserPatchSchema(BaseModel): # частичная замена данных
+class UserPatchSchema(BaseModel):  # частичная замена данных
     """
     перенаследование от базы, потому что
     переопределение с обязательной на необязательную не круто
     """
+
     username: str | None = Field(default=None, min_length=6, max_length=32)
     name: str | None = Field(default=None, min_length=2, max_length=32)
     email: EmailStr | None = None
@@ -39,7 +44,9 @@ class ListPatchSchema(BaseModel):
 class TaskPatchSchema(BaseModel):
     task_name: str | None = Field(default=None, min_length=4, max_length=64)
     completed: bool | None = Field(default=None)
-    # По умолчанию None. Если в JSON поля нет — будет None. А model_dump(exclude_unset=True) не возьмет Ноне в словарь
+
+    # По умолчанию None. Если в JSON поля нет — будет None.
+    # А model_dump(exclude_unset=True) не возьмет Ноне в словарь
     # list_id: int | None = Field(None, ge=1) # запрещает 0
 
 
@@ -50,7 +57,7 @@ class UserResponseSchema(BaseModel):
     name: str
     email: str | None = None
 
-    model_config=ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ListResponseSchema(BaseModel):
@@ -59,9 +66,11 @@ class ListResponseSchema(BaseModel):
     description: str | None
     user_id: int
 
-    # Позволяет Pydantic работать с объектами SQLAlchemy, пытаясь прочитать атрибуты и сделать себе словарь
-    # Для каждого поля в схеме (например, id, name) он делает: getattr(db_user, "id"), getattr(db_user, "name").
-    model_config=ConfigDict(from_attributes=True)
+    # Позволяет Pydantic работать с объектами SQLAlchemy, пытаясь
+    # прочитать атрибуты и сделать себе словарь
+    # Для каждого поля в схеме (например, id, name) он делает:
+    # getattr(db_user, "id"), getattr(db_user, "name").
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TaskResponseSchema(BaseModel):
@@ -70,4 +79,4 @@ class TaskResponseSchema(BaseModel):
     completed: bool
     list_id: int
 
-    model_config=ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)

@@ -4,6 +4,7 @@ from httpx import AsyncClient
 # Сервер Uvicorn запущен отдельно на порту 8000
 E2E_BASE_URL = "http://127.0.0.1:8000"
 
+
 @pytest_asyncio.fixture(scope="function")
 async def ac_online():
     """

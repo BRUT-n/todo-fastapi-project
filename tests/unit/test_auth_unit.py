@@ -42,11 +42,7 @@ def test_encode_jwt_without_expire_time():
     Проверка полезной нагрузки в токене БЕЗ времени действия токена.
     Проверяется по типу "ключ: значение" и так же тип данных токена str.
     """
-    payload = {
-        "sub": "UniqueUsername",
-        "name": "Name",
-        "user_id": 1
-    }
+    payload = {"sub": "UniqueUsername", "name": "Name", "user_id": 1}
 
     token = encode_jwt_token(payload=payload)
     decoded_token = jwt.decode(token, options={"verify_signature": False})
@@ -64,9 +60,7 @@ def test_encode_jwt_and_expire_minutes():
     Полученное из токена время истечения сравнивается с замороженным временем к которому
     прибавляется (минуты * 60) в формате timestamp.
     """
-    payload = {
-        "sub" : "test"
-    }
+    payload = {"sub": "test"}
 
     token = encode_jwt_token(payload=payload)
     decoded_jwt = jwt.decode(token, options={"verify_signature": False})
@@ -74,7 +68,9 @@ def test_encode_jwt_and_expire_minutes():
 
     assert expire_time_from_token is not None
 
-    expected_expire_time = time.time() + (settings.auth.ACCESS_TOKEN_EXPIRE_MINUTES * 60)
+    expected_expire_time = time.time() + (
+        settings.auth.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
 
     assert expire_time_from_token == expected_expire_time
 
@@ -86,9 +82,7 @@ def test_encode_jwt_and_expire_time_delta():
     Полученное из токена время сравнивается с текущим замороженным временем к которому
     добавлено время из формата timedelta приведенное к секндам.
     """
-    payload = {
-        "sub": "test"
-    }
+    payload = {"sub": "test"}
 
     delta = timedelta(minutes=1)
     token = encode_jwt_token(payload=payload, expire_time_delta=delta)

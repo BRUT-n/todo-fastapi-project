@@ -4,11 +4,12 @@ from src.database.crud.healthcheck import check_db_connection
 
 router = APIRouter(prefix="/healthcheck", tags=["Healthcheck"])
 
+
 @router.get(
     "",
     status_code=status.HTTP_200_OK,
     summary="Проверка доступности базы данных",
-    response_model=dict
+    response_model=dict,
 )
 async def healthcheck():
     is_available = await check_db_connection()
@@ -19,4 +20,4 @@ async def healthcheck():
             detail="База данных недоступна",
         )
 
-    return {"status" : "ok"}
+    return {"status": "ok"}

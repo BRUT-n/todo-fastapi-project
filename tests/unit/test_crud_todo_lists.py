@@ -49,9 +49,7 @@ async def test_patch_list_title_success(create_test_todo_list: ListsORM):
     patch_data = ListPatchSchema(title=TITLE_DATA)
 
     patched_list = await patch_list(
-        id_user=existing_list.user_id,
-        id_list=existing_list.id_list,
-        data=patch_data
+        id_user=existing_list.user_id, id_list=existing_list.id_list, data=patch_data
     )
 
     assert patched_list is not None
@@ -66,9 +64,7 @@ async def test_patch_list_all_fields_success(create_test_todo_list: ListsORM):
     patch_data = ListPatchSchema(title=TITLE_DATA, description=DESCRIPTION_DATA)
 
     patched_lits = await patch_list(
-        id_user=existing_list.user_id,
-        id_list=existing_list.id_list,
-        data=patch_data
+        id_user=existing_list.user_id, id_list=existing_list.id_list, data=patch_data
     )
 
     assert patched_lits is not None
@@ -83,9 +79,7 @@ async def test_patch_list_not_found(create_test_user: UsersORM):
     patch_data = ListPatchSchema(title=TITLE_DATA, description=DESCRIPTION_DATA)
 
     patched_list = await patch_list(
-        id_user=existing_user.id_user,
-        id_list=99999,
-        data=patch_data
+        id_user=existing_user.id_user, id_list=99999, data=patch_data
     )
 
     assert patched_list is None
@@ -96,8 +90,7 @@ async def test_delete_list_success(create_test_todo_list: ListsORM):
     existing_list = create_test_todo_list
 
     deleted_list = await delete_list(
-        id_user=existing_list.user_id,
-        id_list=existing_list.id_list
+        id_user=existing_list.user_id, id_list=existing_list.id_list
     )
 
     assert deleted_list is True
@@ -106,16 +99,15 @@ async def test_delete_list_success(create_test_todo_list: ListsORM):
 @pytest.mark.asyncio(loop_scope="session")
 async def test_delete_list_not_found(create_test_user: UsersORM):
     existing_user = create_test_user
-    deleted_list = await delete_list(
-        id_user=existing_user.id_user,
-        id_list=99999
-    )
+    deleted_list = await delete_list(id_user=existing_user.id_user, id_list=99999)
 
     assert deleted_list is False
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_get_lists_sorted_pagination_success(create_test_user: UsersORM, create_many_test_todo_lists):
+async def test_get_lists_sorted_pagination_success(
+    create_test_user: UsersORM, create_many_test_todo_lists
+):
     """
     Проверка пагинации.
     Создает две страницы с разным количеством элементов.
@@ -134,12 +126,14 @@ async def test_get_lists_sorted_pagination_success(create_test_user: UsersORM, c
 
     list_ids = [lst.id_list for lst in page_1] + [lst.id_list for lst in page_2]
 
-    assert  len(list_ids) == len(set(list_ids))
+    assert len(list_ids) == len(set(list_ids))
     assert list_ids == sorted(list_ids)
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_get_lists_pagination_empty_page(create_test_user: UsersORM, create_many_test_todo_lists):
+async def test_get_lists_pagination_empty_page(
+    create_test_user: UsersORM, create_many_test_todo_lists
+):
     """
     Проверка если offset больше количества записей. Возвращается пустой список.
     """
@@ -152,9 +146,12 @@ async def test_get_lists_pagination_empty_page(create_test_user: UsersORM, creat
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_get_lists_pagination_with_single_page(create_test_user: UsersORM, create_many_test_todo_lists):
+async def test_get_lists_pagination_with_single_page(
+    create_test_user: UsersORM, create_many_test_todo_lists
+):
     """
-    Проверка если limit больше количества записей, возвращается правильное количество записей (без заглушек).
+    Проверка если limit больше количества записей, возвращается
+    правильное количество записей (без заглушек).
     """
     existing_user = create_test_user
     await create_many_test_todo_lists(count=3)

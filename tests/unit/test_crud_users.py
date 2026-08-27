@@ -5,7 +5,7 @@ from src.database.crud.users import delete_user, patch_user
 from src.database.tables import UsersORM
 from src.models.schemas import UserPatchSchema
 
-USERNAME_DATA ="NewUniqueUsername"
+USERNAME_DATA = "NewUniqueUsername"
 NAME_DATA = "NewUserName"
 EMAIL_DATA = "newemail@test.com"
 
@@ -54,7 +54,9 @@ async def test_patch_user_email_success(create_test_user: UsersORM):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_patch_user_not_found():
-    patch_data = UserPatchSchema(username=USERNAME_DATA, name=NAME_DATA, email=EMAIL_DATA)
+    patch_data = UserPatchSchema(
+        username=USERNAME_DATA, name=NAME_DATA, email=EMAIL_DATA
+    )
     result = await patch_user(user_id=99999, data=patch_data)
 
     assert result is None

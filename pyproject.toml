@@ -23,7 +23,7 @@ dependencies = [
 
 [tool.ruff]
 src = ["src"] # указание исходного кода проетка (пути и импорты)
-line-length = 120 # максимальная длина строки
+line-length = 88 # максимальная длина строки
 target-version = "py312" # указание версии питона
 exclude = ["alembic"] 
 

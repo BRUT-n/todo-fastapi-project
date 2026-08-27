@@ -7,6 +7,7 @@ class UserRegisterSchema(BaseModel):
     email: EmailStr | None = None
     password: str
 
+
 # дом. фильтр - то что возвращается юзеру (никаких чувствительных данных)
 class UserReadSchema(BaseModel):
     model_config = ConfigDict(strict=True)
@@ -15,23 +16,26 @@ class UserReadSchema(BaseModel):
     name: str
     email: EmailStr | None = None
 
+
 # по стандарту OAuth2 структура ответа при выдаче токена
 class TokenInfo(BaseModel):
     access_token: str
     token_type: str = "Bearer"
+
 
 class TokenPayload(BaseModel):
     sub: str
     iat: int
     exp: int
 
+
 # модель для авторизации
 class UserAuthSchema(BaseModel):
-    # Строго ограничение, чтобы не принимал иные данные и не пытался их привести в нужные
+    # Строго, чтобы не принимал иные данные и не пытался их привести в нужные
     model_config = ConfigDict(strict=True)
 
     username: str
     name: str
     email: EmailStr
-    password: bytes # обычно в виде строки, но это реализовано дополнительно в коде
+    password: bytes  # обычно в виде строки, но это реализовано дополнительно в коде
     # active: bool = True

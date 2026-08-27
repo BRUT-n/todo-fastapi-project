@@ -18,12 +18,13 @@ router = APIRouter(prefix="/me", tags=["Личный кабинет"])
     summary="Редактировать имя или почту",
     status_code=status.HTTP_200_OK,
     response_model=UserResponseSchema,
-) # заменяет указанные свойства
+)  # заменяет указанные свойства
 async def patch_me(
-    data: UserPatchSchema,
-    user: UserReadSchema = Depends(get_user_status_by_token)
+    data: UserPatchSchema, user: UserReadSchema = Depends(get_user_status_by_token)
 ):
-    if data.username and data.username != user.username: # проверка уникальности username
+    if (
+        data.username and data.username != user.username
+    ):  # проверка уникальности username
         check_unique = await auth_crud.get_user_by_username(data.username)
         if check_unique:
             raise AlreadyRegisteredException()
@@ -34,6 +35,7 @@ async def patch_me(
     )
 
     return patched_user
+
 
 @router.delete(
     "/profile",

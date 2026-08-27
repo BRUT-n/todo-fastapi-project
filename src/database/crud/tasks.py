@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 from fastapi import APIRouter
 from sqlalchemy import select
@@ -33,9 +33,10 @@ async def add_task(
         # list_id=id_list
         # )
         new_tsk = TasksORM(
-            task_name = tsk.task_name,
-            completed = tsk.completed,
-            list_id = id_list, # привязка по URL-идентификатору (если юзер не даст, возьмет из УРЛ)
+            task_name=tsk.task_name,
+            completed=tsk.completed,
+            # привязка по URL-идентификатору (если юзер не даст, возьмет из УРЛ)
+            list_id=id_list,
         )
 
         session.add(new_tsk)
@@ -54,14 +55,15 @@ async def get_all_tasks(
     async with session_factory() as session:
         query = (
             select(TasksORM)
-            .join(ListsORM) # джоин для проверки и юзера и листа, тк юзера_айди нет в тасках
-            .where(
-                TasksORM.list_id == id_list,
-                ListsORM.user_id == id_user
-            )
-            .order_by(TasksORM.id_task) # сортировка для предсказуемости вывода
-            .limit(limit) # лимит вывода строк
-            .offset(offset) # смещение - сколько пропускать строк считая от первой строки
+            .join(
+                ListsORM
+            )  # джоин для проверки и юзера и листа, тк юзера_айди нет в тасках
+            .where(TasksORM.list_id == id_list, ListsORM.user_id == id_user)
+            .order_by(TasksORM.id_task)  # сортировка для предсказуемости вывода
+            .limit(limit)  # лимит вывода строк
+            .offset(
+                offset
+            )  # смещение - сколько пропускать строк считая от первой строки
         )
 
         result = await session.execute(query)
@@ -83,7 +85,8 @@ async def patch_task(
             .where(
                 TasksORM.id_task == id_task,
                 ListsORM.id_list == id_list,
-                ListsORM.user_id == id_user)
+                ListsORM.user_id == id_user,
+            )
         )
         result = await session.execute(query)
         tsk = result.scalar_one_or_none()
@@ -91,7 +94,7 @@ async def patch_task(
         if tsk is None:
             return None
 
-        data_dict = data.model_dump(exclude_unset=True) # исключение неуказанных данных
+        data_dict = data.model_dump(exclude_unset=True)  # исключение неуказанных данных
         for field_name, new_value in data_dict.items():
             setattr(tsk, field_name, new_value)
 
@@ -113,7 +116,8 @@ async def delete_task(
             .where(
                 TasksORM.id_task == id_task,
                 ListsORM.id_list == id_list,
-                ListsORM.user_id == id_user)
+                ListsORM.user_id == id_user,
+            )
         )
         result = await session.execute(query)
         tsk = result.scalar_one_or_none()

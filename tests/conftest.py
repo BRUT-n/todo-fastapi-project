@@ -38,7 +38,10 @@ async def test_engine(postgres_container):
 
 @pytest_asyncio.fixture(scope="function")
 async def test_connection(test_engine):
-    """Открывает физическое новое соединение и запускает внешнюю транзакцию ДЛЯ КАЖДОГО ТЕСТА."""
+    """
+    Открывает физическое новое соединение и запускает
+    внешнюю транзакцию ДЛЯ КАЖДОГО ТЕСТА.
+    """
     async with test_engine.connect() as conn:
         # Начинаем корневую транзакцию для ВСЕГО теста
         async with conn.begin() as transaction:
@@ -57,16 +60,21 @@ async def override_session_factory(test_connection, monkeypatch):
     test_session_factory = async_sessionmaker(
         bind=test_connection,
         expire_on_commit=False,
-        join_transaction_mode="create_savepoint"  # Заставляет commit() превращаться в SAVEPOINT
+        # Заставляет commit() превращаться в SAVEPOINT
+        join_transaction_mode="create_savepoint",
     )
 
     # Подменяем фабрику во всех тестируемых модулях приложения
     monkeypatch.setattr("src.database.config.session_factory", test_session_factory)
     monkeypatch.setattr("src.database.crud.users.session_factory", test_session_factory)
     monkeypatch.setattr("src.database.crud.auth.session_factory", test_session_factory)
-    monkeypatch.setattr("src.database.crud.todo_lists.session_factory", test_session_factory)
+    monkeypatch.setattr(
+        "src.database.crud.todo_lists.session_factory", test_session_factory
+    )
     monkeypatch.setattr("src.database.crud.tasks.session_factory", test_session_factory)
-    monkeypatch.setattr("src.database.crud.healthcheck.session_factory", test_session_factory)
+    monkeypatch.setattr(
+        "src.database.crud.healthcheck.session_factory", test_session_factory
+    )
 
     yield test_session_factory
 
@@ -91,7 +99,7 @@ async def create_test_user(session):
         username="UniqueUsername",
         name="UserName",
         email="usermail@test.com",
-        hashed_password=real_hash
+        hashed_password=real_hash,
     )
 
     session.add(user)
@@ -108,9 +116,7 @@ async def create_test_todo_list(session, create_test_user):
     Привязана к тестовому пользователю.
     """
     todo_lst = ListsORM(
-        title="Title",
-        description="Description",
-        user_id=create_test_user.id_user
+        title="Title", description="Description", user_id=create_test_user.id_user
     )
 
     session.add(todo_lst)
@@ -127,9 +133,7 @@ async def create_test_task(session, create_test_todo_list):
     Привязана к тестовому списку задач.
     """
     task = TasksORM(
-        task_name="TaskName",
-        completed=False,
-        list_id=create_test_todo_list.id_list
+        task_name="TaskName", completed=False, list_id=create_test_todo_list.id_list
     )
 
     session.add(task)
@@ -144,6 +148,7 @@ async def create_many_test_todo_lists(session, create_test_user):
     """
     Фикстура-фабрика создания N списков задач для проверки пагинации в тестах.
     """
+
     async def _create_lists(count: int = DEFAULT_TODO_LIST_COUNT):
         lists = [
             ListsORM(
@@ -160,11 +165,13 @@ async def create_many_test_todo_lists(session, create_test_user):
 
     return _create_lists
 
+
 @pytest_asyncio.fixture(scope="function")
 async def create_many_test_tasks(session, create_test_todo_list):
     """
     Фикстура-фабрика создания N задач для проверки пагинации в тестах.
     """
+
     async def _create_tasks(count: int = DEFAULT_TASKS_COUNT):
         tasks = [
             TasksORM(

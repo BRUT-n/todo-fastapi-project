@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -14,6 +14,7 @@ PUBLIC_KEY = settings.auth.JWT_PUBLIC_KEY_PATH.read_text()
 ALGORITHM = settings.auth.ALGORITHM
 BCRYPT_ROUNDS = settings.auth.BCRYPT_ROUNDS
 
+
 def hash_password(
     password: str,
 ) -> bytes:
@@ -26,6 +27,7 @@ def hash_password(
     salt = bcrypt.gensalt(rounds=BCRYPT_ROUNDS)
     password_to_bytes = password.encode()
     return bcrypt.hashpw(password_to_bytes, salt)
+
 
 def validate_password(
     password: str,
@@ -41,6 +43,7 @@ def validate_password(
         hashed_password=hashed_password,
     )
 
+
 def encode_jwt_token(
     payload: dict,
     private_key: str = PRIVATE_KEY,
@@ -53,7 +56,7 @@ def encode_jwt_token(
     payload - какую информацию вкладывать в токен.
     """
     encoded_payload = payload.copy()
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     if expire_time_delta:
         expire = now + expire_time_delta
@@ -72,6 +75,7 @@ def encode_jwt_token(
     )
     return token
 
+
 def decode_jwt_token(
     encoded_token: str,
     public_key: str,
@@ -84,7 +88,6 @@ def decode_jwt_token(
     decoded_token = jwt.decode(
         encoded_token,
         public_key,
-        algorithms=[algorithm] # обязательно так, из-за обновы безопасности
+        algorithms=[algorithm],  # обязательно так, из-за обновы безопасности
     )
     return decoded_token
-

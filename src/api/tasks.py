@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from src.auth.dependencies import get_user_status_by_token
@@ -18,9 +17,9 @@ router = APIRouter(prefix="/me", tags=["Работа с задачами вну�
     summary="Добавить задачу в лист по айди",
     status_code=status.HTTP_201_CREATED,
     response_model=TaskResponseSchema,
-    )
+)
 async def create_task_in_lst(
-    id_list:int,
+    id_list: int,
     task: TaskAddSchema,
     user: UserReadSchema = Depends(get_user_status_by_token),
 ):
@@ -31,17 +30,17 @@ async def create_task_in_lst(
     )
     if new_tsk is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User or list not found"
-            )
+            status_code=status.HTTP_404_NOT_FOUND, detail="User or list not found"
+        )
     return new_tsk
+
 
 @router.get(
     "/to-do-lists/{id_list}/tasks",
     summary="Вывести все задачи",
     status_code=status.HTTP_200_OK,
     response_model=list[TaskResponseSchema],
-    )
+)
 async def get_tasks_from_list(
     id_list: int,
     limit: int = Query(
@@ -49,13 +48,16 @@ async def get_tasks_from_list(
         ge=1,
         le=20,
         title="Лимит задач на вывод пользователю.",
-        description="Количество задач, которое нужно вернуть на одной странице (размер страницы)."
+        description=(
+            "Количество задач, которое нужно вернуть на одной странице "
+            "(размер страницы)."
+        ),
     ),
     offset: int = Query(
         default=0,
         ge=0,
         title="Смещение (сдвиг) для перехода по страницам.",
-        description="Количество задач, которое нужно пропустить от начала."
+        description="Количество задач, которое нужно пропустить от начала.",
     ),
     user: UserReadSchema = Depends(get_user_status_by_token),
 ):
@@ -67,17 +69,18 @@ async def get_tasks_from_list(
     )
     return result
 
+
 @router.patch(
     "/to-do-lists/{id_list}/tasks/{id_task}",
     summary="Обновить часть данных задачи",
     status_code=status.HTTP_200_OK,
     response_model=TaskResponseSchema,
-    )
+)
 async def edit_task_in_lst(
     id_task: int,
     id_list: int,
     data: TaskPatchSchema,
-    user: UserReadSchema= Depends(get_user_status_by_token)
+    user: UserReadSchema = Depends(get_user_status_by_token),
 ):
     edited_task = await tasks_crud.patch_task(
         id_task=id_task,
@@ -86,18 +89,20 @@ async def edit_task_in_lst(
         data=data,
     )
     if edited_task is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
 
     return edited_task
+
 
 @router.delete(
     "/to-do-lists/{id_list}/tasks/{id_task}",
     summary="Удалить задачу по айди",
-    status_code=status.HTTP_204_NO_CONTENT)
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 async def delete_task_from_lst(
-    id_task: int,
-    id_list: int,
-    user: UserReadSchema = Depends(get_user_status_by_token)
+    id_task: int, id_list: int, user: UserReadSchema = Depends(get_user_status_by_token)
 ):
     task_to_delete = await tasks_crud.delete_task(
         id_task=id_task,
@@ -106,6 +111,8 @@ async def delete_task_from_lst(
     )
 
     if task_to_delete is False:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
 
     return None

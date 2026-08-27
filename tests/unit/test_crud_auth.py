@@ -1,6 +1,6 @@
 import pytest
 from src.auth.dependencies import get_user_status_by_token
-from src.database.crud.auth import (  #get_user_by_email
+from src.database.crud.auth import (  # get_user_by_email
     create_user,
     get_user_by_id,
     get_user_by_username,
@@ -11,10 +11,10 @@ from src.database.crud.auth import (  #get_user_by_email
 async def test_create_user_success():
     # 1. Arrange: Создаем тестового пользователя
     user_data = {
-        "username" : "UniqueUsername",
+        "username": "UniqueUsername",
         "name": "UserName",
         "email": "usermail@email.com",
-        "hashed_password": b"password_in_bytes"
+        "hashed_password": b"password_in_bytes",
     }
 
     # 2. Act: Вызываем тестируемую CRUD-функцию

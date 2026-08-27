@@ -15,10 +15,10 @@ async def lifespan(app: FastAPI):
         # await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-    yield # Разделитель. В этой точке FastAPI начинает слушать запросы.
+    yield  # Разделитель. В этой точке FastAPI начинает слушать запросы.
 
     # --- ЭТО БЛОК SHUTDOWN (Выполняется один раз при выключении) ---
-    await engine.dispose() # закрывает каналы связи
+    await engine.dispose()  # закрывает каналы связи
 
 
 # Подключаем логику к приложению

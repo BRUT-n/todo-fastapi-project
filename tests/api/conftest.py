@@ -14,6 +14,7 @@ async def ac():
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
 
+
 @pytest_asyncio.fixture(scope="function")
 async def auth_header(create_test_user):
     existing_user_id = create_test_user.id_user

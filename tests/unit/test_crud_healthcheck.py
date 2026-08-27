@@ -13,7 +13,7 @@ async def test_check_db_connection_success():
 @pytest.mark.asyncio(loop_scope="session")
 async def test_check_db_connection_failure(test_connection):
 
-    await test_connection.close() # принудительное закрытие подключения из conftest
+    await test_connection.close()  # принудительное закрытие подключения из conftest
 
     result = await check_db_connection()
     assert result is False

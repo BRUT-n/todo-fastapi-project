@@ -17,12 +17,13 @@ from src.database.tables import UsersORM
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
+
 async def register_user(
     user_data: UserRegisterSchema,
 ) -> UsersORM:
     """
     Регистрация пользователя.
-    Используя pydantic-схему регистрации пользователя принимает имя, username, почту, пароль.
+    Используя pydantic-схему регистрации пользователя.
     Проверяет в базе дублирование username.
     Хеширует полученный пароль и вносит его с данными в базу.
     """
@@ -37,7 +38,7 @@ async def register_user(
         name=user_data.name,
         hashed_password=hashed_password_bytes,
         email=user_data.email,
-        )
+    )
 
     return new_user
 
@@ -57,17 +58,14 @@ async def validate_credentials(
         raise InvalidCredentialsException()
 
     if not auth_utils.validate_password(
-        password=password,
-        hashed_password=user.hashed_password
+        password=password, hashed_password=user.hashed_password
     ):
         raise InvalidCredentialsException()
 
     return user
 
 
-async def get_token_payload(
-    token: str = Depends(oauth2_scheme)
-) -> dict:
+async def get_token_payload(token: str = Depends(oauth2_scheme)) -> dict:
     """
     Извлекает и проверяет полезную нагрузку JWT.
     Данные проверяются сразу и используются при необходимости без обращения в БД.
@@ -76,13 +74,14 @@ async def get_token_payload(
         payload = auth_utils.decode_jwt_token(
             encoded_token=token,
             public_key=auth_utils.PUBLIC_KEY,
-            algorithm=auth_utils.ALGORITHM
+            algorithm=auth_utils.ALGORITHM,
         )
         return payload
     except jwt.ExpiredSignatureError:
         raise TokenExpiredException() from None
-    except jwt.InvalidTokenError: # ловит базовое исключение Invalid
+    except jwt.InvalidTokenError:  # ловит базовое исключение Invalid
         raise TokenInvalidException() from None
+
 
 async def get_user_status_by_token(
     payload: dict = Depends(get_token_payload),

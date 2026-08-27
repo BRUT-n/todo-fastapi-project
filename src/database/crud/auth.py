@@ -10,7 +10,7 @@ async def get_user_by_username(username: str) -> UsersORM | None:
     async with session_factory() as session:
         query = select(UsersORM).where(UsersORM.username == username)
         result = await session.execute(query)
-        user = result.scalar_one_or_none() # проверка username на уникальность в БД
+        user = result.scalar_one_or_none()  # проверка username на уникальность в БД
 
         return user
 
@@ -26,7 +26,12 @@ async def get_user_by_id(user_id: int) -> UsersORM | None:
         return user
 
 
-async def create_user(username: str, name: str, hashed_password: bytes, email: str | None = None, ) -> UsersORM:
+async def create_user(
+    username: str,
+    name: str,
+    hashed_password: bytes,
+    email: str | None = None,
+) -> UsersORM:
     """
     Создать пользователя с записью полей в базу.
     """

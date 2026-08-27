@@ -14,9 +14,9 @@ async def test_register_success(ac: AsyncClient):
     Данные указанные при регистрации записаны корректно.
     """
     payload = {
-        "username" : "UnuqueUsername",
-        "name" : "FirstName",
-        "password" : "secret_password"
+        "username": "UnuqueUsername",
+        "name": "FirstName",
+        "password": "secret_password",
     }
 
     response = await ac.post(
@@ -44,9 +44,9 @@ async def test_register_failure(ac: AsyncClient, create_test_user):
     existing_user_username = create_test_user.username
 
     payload = {
-        "username" : existing_user_username,
-        "name" : "AnotherName",
-        "password" : "another_secret_password"
+        "username": existing_user_username,
+        "name": "AnotherName",
+        "password": "another_secret_password",
     }
 
     response = await ac.post(
@@ -58,20 +58,16 @@ async def test_register_failure(ac: AsyncClient, create_test_user):
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_login_for_access_token_success(ac: AsyncClient, create_test_user: UsersORM):
+async def test_login_for_access_token_success(
+    ac: AsyncClient, create_test_user: UsersORM
+):
     """
     Проверка логина по юзернейму и паролю на зарегистрированом в БД пользователе.
     """
     existing_user_username = create_test_user.username
-    payload = {
-        "username" : existing_user_username,
-        "password" : "secret_password"
-    }
+    payload = {"username": existing_user_username, "password": "secret_password"}
 
-    response = await ac.post(
-        "/auth/login",
-        data=payload
-    )
+    response = await ac.post("/auth/login", data=payload)
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -82,21 +78,18 @@ async def test_login_for_access_token_success(ac: AsyncClient, create_test_user:
     assert data["token_type"] == "Bearer"
     assert len(data["access_token"]) > 100
 
+
 @pytest.mark.asyncio(loop_scope="session")
-async def test_login_for_access_token_wrong_password(ac: AsyncClient, create_test_user: UsersORM):
+async def test_login_for_access_token_wrong_password(
+    ac: AsyncClient, create_test_user: UsersORM
+):
     """
     Проверка ошибки неверного пароля.
     """
     existing_user_username = create_test_user.username
-    payload = {
-        "username" : existing_user_username,
-        "password" : "WRONGpassword"
-    }
+    payload = {"username": existing_user_username, "password": "WRONGpassword"}
 
-    response = await ac.post(
-        "/auth/login",
-        data=payload
-    )
+    response = await ac.post("/auth/login", data=payload)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 

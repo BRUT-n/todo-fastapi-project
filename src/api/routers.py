@@ -6,7 +6,7 @@ from src.api.tasks import router as tasks_router
 from src.api.todo_lists import router as todo_list_router
 from src.api.users import router as user_router
 
-all_router = APIRouter() # базовый роутер для всего АПИ
+all_router = APIRouter()  # базовый роутер для всего АПИ
 
 # подключение всех модулей (роутеров) в один главный
 all_router.include_router(user_router)
