@@ -39,11 +39,11 @@ jobs:
     steps:
       # 1. Скачиваем код на сервер GitHub через плагин
       - name: Clone code to runner
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # 2. Установка `uv` через их плагин
       - name: Install uv tool
-        uses: astral-sh/setup-uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
         with:
           version: "latest"
 
