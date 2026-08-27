@@ -11,21 +11,21 @@ jobs:
   quality-gate:
     runs-on: ubuntu-latest
 
-    # Поднимаем PostgreSQL в Docker прямо на сервере GitHub
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: brutn
-          POSTGRES_PASSWORD: secret_password
-          POSTGRES_DB: todo_app_test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    # # Поднимаем PostgreSQL в Docker прямо на сервере GitHub
+    # services:
+    #   postgres:
+    #     image: postgres:16-alpine
+    #     env:
+    #       POSTGRES_USER: brutn
+    #       POSTGRES_PASSWORD: secret_password
+    #       POSTGRES_DB: todo_app_test_db
+    #     ports:
+    #       - 5432:5432
+    #     options: >-
+    #       --health-cmd pg_isready
+    #       --health-interval 10s
+    #       --health-timeout 5s
+    #       --health-retries 5
 
     # Переменные окружения, которые твой Python-код считает при запуске тестов
     env:
@@ -53,16 +53,30 @@ jobs:
 
       - name: Generate dummy JWT keys for testing
         run: |
-          openssl genpkey -algorithm RSA -out /tmp/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
-          openssl rsa -pubout -in /tmp/jwt-private-key.pem -out /tmp/jwt-public-key.pem
+          # Создаем фейковый .env для Docker Compose
+          echo "POSTGRES_USER=test_user" >> .env
+          echo "POSTGRES_PASSWORD=test_password" >> .env
+          echo "POSTGRES_DB=test_db" >> .env
+          
+          # Создаем реальную папку certs, которую ждет ваш Dockerfile при сборке
+          mkdir -p certs
+          openssl genpkey -algorithm RSA -out certs/tmp/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
+          openssl rsa -pubout -in certs/jwt-private-key.pem -out certs/tmp/jwt-public-key.pem
+
+      # 5. Запускаем всю вашу инфраструктуру (FastAPI + Postgres) в фоне через Docker Compose
+      - name: Start Application Stack
+        run: docker compose up -d --build
 
       # 2. Запускаем тесты и передаем новые пути через переменные окружения Pydantic
       - name: Run Quality Gate Checks
         env:
           # Магия вложенности Pydantic:auth__имя_переменной
-          auth__JWT_PRIVATE_KEY_PATH: "/tmp/jwt-private-key.pem"
-          auth__JWT_PUBLIC_KEY_PATH: "/tmp/jwt-public-key.pem"
+          auth__JWT_PRIVATE_KEY_PATH: "certs/tmp/jwt-private-key.pem"
+          auth__JWT_PUBLIC_KEY_PATH: "certs/tmp/jwt-public-key.pem"
+          app__E2E_BASE_URL: "http://127.0.0.1:8000" 
         run: make check
-        
-      # # 4. Запуск комплексной проверки из Makefile
-      # - name: Run Quality Gate Checks
+
+      # 7. Наводим за собой порядок (тушим контейнеры и очищаем тома)
+      - name: Stop Application Stack
+        if: always() # выполнится в любом случае
+        run: docker compose down -v
