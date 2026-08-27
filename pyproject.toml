@@ -22,17 +22,51 @@ dependencies = [
 ]
 
 [tool.ruff]
-# Самое важное: Ruff теперь знает, что корень кода в src
-src = ["src"]
+src = ["src"] # указание исходного кода проетка (пути и импорты)
+line-length = 120 # максимальная длина строки
+target-version = "py312" # указание версии питона
+exclude = ["alembic"] 
 
 [tool.ruff.lint]
-select = ["F", "I", "E", "W"]
-# игнорирование длины строки
-ignore = ["E501"]
+select = [
+    "E",   # pycodestyle errors (ошибки стиля PEP8)
+    "W",   # pycodestyle warnings (предупреждения стиля)
+    "F",   # Pyflakes (логические ошибки, забытые импорты)
+    "I",   # isort (автоматическая сортировка импортов по алфавиту)
+    "B",   # flake8-bugbear (поиск скрытых багов и опасного кода)
+    "UP",  # pyupgrade (подсказки по обновлению синтаксиса до Python 3.12)
+]
+ignore = []
+# ignore = ["E501"]
+
+[tool.ruff.format]
+# Все строки в проекте автоматически приводятся к двойным кавычкам
+quote-style = "double"
+
+[tool.pyright]
+# Указываем Pyright, где искать исходный код приложения
+include = ["src", "tests"]
+# Включаем стандартный режим проверки типов (идеально для FastAPI)
+typeCheckingMode = "standard"
+# Python будет ругаться на неиспользуемые импорты, но мы отдаем эту задачу Ruff
+reportUnusedImport = false 
 
 [tool.ruff.lint.isort]
-# Помогает Ruff понимать, что ваши папки внутри src — это свои модули
-known-first-party = ["todo-app-project"] 
+# Указывает что папки внутри src — это свои модули, а не внешние
+known-first-party = ["todo-app-project"]
+
+[tool.ruff.lint.flake8-bugbear]
+# Разрешить использовать эти функции FastAPI в аргументах по умолчанию
+extend-immutable-calls = [
+    "fastapi.Depends", 
+    "fastapi.params.Depends", 
+    "fastapi.Query", 
+    "fastapi.params.Query",
+    "fastapi.Path", 
+    "fastapi.params.Path",
+    "fastapi.Body", 
+    "fastapi.params.Body"
+]
 
 [dependency-groups]
 dev = [

@@ -80,9 +80,9 @@ async def get_token_payload(
         )
         return payload
     except jwt.ExpiredSignatureError:
-        raise TokenExpiredException()
+        raise TokenExpiredException() from None
     except jwt.InvalidTokenError: # ловит базовое исключение Invalid
-        raise TokenInvalidException()
+        raise TokenInvalidException() from None
 
 async def get_user_status_by_token(
     payload: dict = Depends(get_token_payload),
@@ -100,7 +100,7 @@ async def get_user_status_by_token(
     try:
         user_id = int(sub)
     except (ValueError, TypeError):
-        raise TokenInvalidException()
+        raise TokenInvalidException() from None
 
     user = await auth_crud.get_user_by_id(user_id=user_id)
 

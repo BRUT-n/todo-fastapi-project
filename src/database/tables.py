@@ -12,7 +12,9 @@ class UsersORM(Base):
     id_user: Mapped[intpk] # тип столбца через алиас-переменную
     username: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
     name: Mapped[str] = mapped_column(String(32)) # валидация длины
-    email: Mapped[str | None] = mapped_column(String(64), nullable=True) # уникальность емейла удалена и использована в миграции бд
+
+    # уникальность емейла удалена и использована в миграции бд
+    email: Mapped[str | None] = mapped_column(String(64), nullable=True)
     hashed_password: Mapped[bytes] = mapped_column(nullable=False) # поле для хранения хеша пароля
 
     # связь: один пользователь -> много списков (поэтому принимает список)
@@ -41,7 +43,9 @@ class TasksORM(Base):
 
     id_task: Mapped[intpk]
     task_name: Mapped[str] = mapped_column(String(64))
-    completed: Mapped[bool] = mapped_column(default=False) # добавлен дефолт иначе база будет требовать её при каждом сохранении, если вы забудете её передать.
+
+    # добавлен дефолт иначе база будет требовать её при каждом сохранении, если вы забудете её передать.
+    completed: Mapped[bool] = mapped_column(default=False)
 
     # столбец для хранение айди листа, связан как внешний ключ с таблицей листов
     # также защищает от вставки несуществующего айди листа с помощью ForeignKey

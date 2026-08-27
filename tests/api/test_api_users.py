@@ -33,7 +33,7 @@ async def test_patch_profile_username_already_registered(ac: AsyncClient, auth_h
     """
     Проверка поменять юзернейм на уже зарегистрированный.
     """
-    existing_user_of_token = create_test_user
+    _existing_user_of_token = create_test_user
     second_user = UsersORM(
         username="Username2",
         name="Name2",

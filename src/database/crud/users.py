@@ -29,7 +29,8 @@ async def patch_user(
         if user is None:
             return None # обрабатывается в роуте
 
-        data_dict = data.model_dump(exclude_unset=True) # превращает !только переданные данные! Pydantic-модели в словарь
+        # превращает !только переданные данные! Pydantic-модели в словарь
+        data_dict = data.model_dump(exclude_unset=True)
 
         for field_name, new_value in data_dict.items(): # итерация по данным которые были указаны
             setattr(user, field_name, new_value) # спец функция на замену данных по типу user.name = "Ivan".

@@ -9,7 +9,8 @@ class UserAddSchema(BaseModel):
 
 
 class ListAddSchema(BaseModel):
-    title: str = Field(..., min_length=1, max_length=32) #  (...) называются Ellipsis, означают, что поле является обязательным
+    #  (...) называются Ellipsis, означают, что поле является обязательным
+    title: str = Field(..., min_length=1, max_length=32)
     description: str = Field(..., min_length=1, max_length=256)
 
 
@@ -30,7 +31,7 @@ class UserPatchSchema(BaseModel): # частичная замена данных
 
 
 class ListPatchSchema(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=32) #  (...) называются Ellipsis, означают, что поле является обязательным
+    title: str | None = Field(default=None, min_length=1, max_length=32)
     description: str | None = Field(default=None, min_length=1, max_length=256)
     # user_id: int | None = Field(None, ge=1) # запрещает 0
 

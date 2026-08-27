@@ -9,7 +9,8 @@ async def ac():
     """
     Асинхронный клиент для отправки HTTP-запросов к FastAPI в памяти (не по сети)
     """
-    transport = ASGITransport(app=app) # транспорт для отправки запросов напрямую к приложению, идут в память, а не в сеть
+    # транспорт для отправки запросов напрямую к приложению, идут в память, а не в сеть
+    transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
 

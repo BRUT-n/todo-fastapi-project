@@ -27,7 +27,8 @@ class TokenPayload(BaseModel):
 
 # модель для авторизации
 class UserAuthSchema(BaseModel):
-    model_config = ConfigDict(strict=True) # Строго ограничение, чтобы не принимал иные данные и не пытался их привести в нужные
+    # Строго ограничение, чтобы не принимал иные данные и не пытался их привести в нужные
+    model_config = ConfigDict(strict=True)
 
     username: str
     name: str
