@@ -51,6 +51,18 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
+      - name: Generate dummy JWT keys for testing
+        run: |
+          openssl genpkey -algorithm RSA -out /tmp/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
+          openssl rsa -pubout -in /tmp/jwt-private-key.pem -out /tmp/jwt-public-key.pem
+
+      # 2. Запускаем тесты и передаем новые пути через переменные окружения Pydantic
+      - name: Run tests
+        env:
+          # Магия вложенности Pydantic:auth__имя_переменной
+          auth__JWT_PRIVATE_KEY_PATH: "/tmp/jwt-private-key.pem"
+          auth__JWT_PUBLIC_KEY_PATH: "/tmp/jwt-public-key.pem"
+        
       # 4. Запуск комплексной проверки из Makefile
       - name: Run Quality Gate Checks
         run: make check
