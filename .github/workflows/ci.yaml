@@ -66,7 +66,7 @@ jobs:
           path: |
             certs/
             .env
-            retention-days: 1
+          retention-days: 1
 
   # ДжобЖ итоговые тесты Е2Е
   e2e_tests:
@@ -91,6 +91,12 @@ jobs:
       # код на сервер GitHub через плагин
       - name: Clone code to runner
         uses: actions/checkout@v5
+
+      # загрузка созданных раннее артефактов для работы с ними
+      - name: Download generated certs and env
+        uses: actions/download-artifact@v4
+        with:
+          name: ci-test-artifacts
 
       # Установка `uv` через их плагин
       - name: Install uv tool
