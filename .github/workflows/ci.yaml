@@ -8,26 +8,72 @@ on:
     branches: [ main ] # Запуск при создании PR в ветку main
 
 jobs:
-  quality-gate:
+
+  # Джоб: клонирование кода,установка uv, установка зависимостей, запуск линтера (без исправлений)
+  lint:
     runs-on: ubuntu-latest
+    steps:
+      - name: Clone code to runner
+        uses: actions/checkout@v5
 
-    # # Поднимаем PostgreSQL в Docker прямо на сервере GitHub
-    # services:
-    #   postgres:
-    #     image: postgres:16-alpine
-    #     env:
-    #       POSTGRES_USER: brutn
-    #       POSTGRES_PASSWORD: secret_password
-    #       POSTGRES_DB: todo_app_test_db
-    #     ports:
-    #       - 5432:5432
-    #     options: >-
-    #       --health-cmd pg_isready
-    #       --health-interval 10s
-    #       --health-timeout 5s
-    #       --health-retries 5
+      - name: Install uv tool
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
 
-    # Переменные окружения, которые твой Python-код считает при запуске тестов
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run Linter
+        run: make lint
+
+  # Джоб: клонирование кода,установка uv, установка зависимостей, запуск юнит и апи тестов
+  unit-and-api-tests:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Clone code to runner
+        uses: actions/checkout@v5
+
+      - name: Install uv tool
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
+
+      - name: Install dependencies
+        run:  run: uv sync --all-extras --dev
+
+      - name: Run unit and api tests
+        run: make test
+
+  # Джоб: подготовка окружения и ключей (артефактов)
+  prepare-artifacts:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Generate dummy public JWT key for testing
+        run: |
+          mkdir -p certs
+          openssl genpkey -algorithm RSA -out certs/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
+          openssl rsa -pubout -in certs/jwt-private-key.pem -out certs/jwt-public-key.pem
+          
+          # Создаем фейковый .env для Docker Compose
+          echo "POSTGRES_USER=test_user" >> .env
+          echo "POSTGRES_PASSWORD=test_password" >> .env
+          echo "POSTGRES_DB=test_db" >> .env
+
+      # сохранить ключи и .env как артефакты, чтобы передать в следующие job
+      - name: Upload generated certs and env
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-test-artifacts
+          path: |
+            certs/
+            .env
+            retention-days: 1
+
+  # ДжобЖ итоговые тесты Е2Е
+  e2e_tests:
+    runs-on: ubuntu-latest
+    needs: [unit-and-api-tests, prepare-artifacts]
+
+    # Переменные окружения
     env:
       DB_HOST: localhost
       DB_PORT: 5432
@@ -36,47 +82,33 @@ jobs:
       DB_NAME: todo_app_test_db
       SECRET_KEY: ci_secret_key_for_jwt_testing
 
+      # Магия вложенности Pydantic:auth__имя_переменной
+      auth__JWT_PRIVATE_KEY_PATH: "certs/jwt-private-key.pem"
+      auth__JWT_PUBLIC_KEY_PATH: "certs/jwt-public-key.pem"
+      app__E2E_BASE_URL: "http://127.0.0.1:8000" 
+
     steps:
-      # 1. Скачиваем код на сервер GitHub через плагин
+      # код на сервер GitHub через плагин
       - name: Clone code to runner
         uses: actions/checkout@v5
 
-      # 2. Установка `uv` через их плагин
+      # Установка `uv` через их плагин
       - name: Install uv tool
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
-        with:
-          version: "latest"
 
-      # 3. Устновка необходимых зависимостей из uv.lock / pyproject.toml
+      # Устновка необходимых зависимостей из uv.lock / pyproject.toml
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      - name: Generate dummy JWT keys for testing
-        run: |
-          # Создаем фейковый .env для Docker Compose
-          echo "POSTGRES_USER=test_user" >> .env
-          echo "POSTGRES_PASSWORD=test_password" >> .env
-          echo "POSTGRES_DB=test_db" >> .env
-          
-          # Создаем реальную папку certs, которую ждет ваш Dockerfile при сборке
-          mkdir -p certs
-          openssl genpkey -algorithm RSA -out certs/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
-          openssl rsa -pubout -in certs/jwt-private-key.pem -out certs/jwt-public-key.pem
-
-      # 5. Запускаем всю вашу инфраструктуру (FastAPI + Postgres) в фоне через Docker Compose
+      # FastAPI + Postgres в фоне через Docker Compose
       - name: Start Application Stack
         run: docker compose up -d --build
 
-      # 2. Запускаем тесты и передаем новые пути через переменные окружения Pydantic
-      - name: Run Quality Gate Checks
-        env:
-          # Магия вложенности Pydantic:auth__имя_переменной
-          auth__JWT_PRIVATE_KEY_PATH: "certs/jwt-private-key.pem"
-          auth__JWT_PUBLIC_KEY_PATH: "certs/jwt-public-key.pem"
-          app__E2E_BASE_URL: "http://127.0.0.1:8000" 
-        run: make check
+      # E2E используя подмененные переменные
+      - name: Run E2E tests
+        run: make test-e2e
 
-      # 7. Наводим за собой порядок (тушим контейнеры и очищаем тома)
+      # Очистка томов и погашение контейнера
       - name: Stop Application Stack
         if: always() # выполнится в любом случае
         run: docker compose down -v
