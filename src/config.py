@@ -8,6 +8,8 @@ class AppSettings(BaseModel):
     TITLE: str = "Todo List API"
     VERSION: str = "0.1.0"
     DEBUG: bool = False
+    # для тестов е2е
+    E2E_BASE_URL: str = "http://127.0.0.1:8000"
 
 
 class DataBaseSettings(BaseModel):

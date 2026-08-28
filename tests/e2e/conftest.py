@@ -1,8 +1,9 @@
 import pytest_asyncio
 from httpx import AsyncClient
+from src.database.config import settings
 
 # Сервер Uvicorn запущен отдельно на порту 8000
-E2E_BASE_URL = "http://127.0.0.1:8000"
+E2E_BASE_URL = settings.app.E2E_BASE_URL
 
 
 @pytest_asyncio.fixture(scope="function")

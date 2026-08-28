@@ -1,6 +1,6 @@
 # указание, что перечисленные слова не являются файлами и используются как команды
 .PHONY: run db-start db-stop app-start stop docker-app-run docker-app-stop test test-api \
-		test-crud test-auth test-cov lint lint-fix format format-fix check
+		test-crud test-auth test-e2e test-cov lint lint-fix format format-fix check
 
 PYTHONPATH = .
 CONTAINER_NAME = todo_app_postgres_db
@@ -58,6 +58,11 @@ test-auth:
 	@echo "ЗАПУСК AUTH ТЕСТОВ"
 
 	$(PYTEST) tests/unit/ -k "test_auth_"
+
+test-e2e:
+	@echo "ЗАПУСК E2E ТЕСТОВ"
+
+	$(PYTEST) tests/e2e/test_todo_user_journey.py
 
 test-cov:
 	@echo "ПРОВЕРКА ПОКРЫТИЯ ТЕСТОВ"
