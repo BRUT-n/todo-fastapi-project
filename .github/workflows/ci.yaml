@@ -43,7 +43,7 @@ jobs:
 
       # сохранить ключи и .env как артефакты, чтобы передать в следующие job
       - name: Upload generated certs and env
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ci-test-artifacts
           path: |
@@ -61,7 +61,7 @@ jobs:
 
       # загрузка созданных раннее артефактов для работы с ними
       - name: Download generated certs and env
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-test-artifacts
 
@@ -72,7 +72,10 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run unit and api tests
-        run: make test
+        run: |
+          make test-crud
+          make test-auth
+          make test-api
 
   # Джоб: итоговые тесты Е2Е
   e2e_tests:
@@ -100,7 +103,7 @@ jobs:
 
       # загрузка созданных раннее артефактов для работы с ними
       - name: Download generated certs and env
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: ci-test-artifacts
 
