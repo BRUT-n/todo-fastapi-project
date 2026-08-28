@@ -64,8 +64,12 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: ci-test-artifacts
-          # распаковка в корень проекта
-          path: .
+
+        # перенос аортефактов в корень проекта
+      - name: Move artifacts to root
+        run: |
+          cp -r ci-test-artifacts/.env ci-test-artifacts/certs .
+          rm -rf ci-test-artifacts
 
       - name: Install uv tool
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
@@ -108,8 +112,12 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: ci-test-artifacts
-          # распаковка в корень проекта
-          path: .
+
+        # перенос аортефактов в корень проекта
+      - name: Move artifacts to root
+        run: |
+          cp -r ci-test-artifacts/.env ci-test-artifacts/certs .
+          rm -rf ci-test-artifacts
 
       # Установка `uv` через их плагин
       - name: Install uv tool
