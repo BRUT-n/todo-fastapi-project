@@ -91,7 +91,7 @@ jobs:
         uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{secrets.VDS_IP}}
-          username: ${{secrets.USER}}
+          username: ${{secrets.VDS_USER}}
           key: ${{secrets.SSH_KEY}}
           port: 22
           script: |
