@@ -88,7 +88,7 @@ jobs:
 
     steps:
       - name: Execute deploy commands via SSH
-        uses: appleboy/ssh-action@1.2.5
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{secrets.VDS_IP}}
           username: ${{secrets.USER}}
