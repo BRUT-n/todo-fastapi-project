@@ -118,7 +118,7 @@ jobs:
     # Переменные окружения
     env:
       # Магия вложенности Pydantic:auth__имя_переменной
-      app__E2E_BASE_URL: ${{secrets.VDS_IP}} 
+      app__E2E_BASE_URL: http://${{secrets.VDS_IP}}:8000 
 
     steps:
       # код на сервер GitHub через плагин
@@ -137,7 +137,5 @@ jobs:
       - name: Wait for server readiness
         run: sleep 5
 
-      # Очистка томов и погашение контейнера
-      - name: Stop Application Stack
-        if: always() # выполнится в любом случае
-        run: docker compose down -v
+      - name: Run E2E tests after deploy
+        run: make test_e2e
