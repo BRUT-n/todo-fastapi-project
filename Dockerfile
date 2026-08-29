@@ -18,7 +18,7 @@ RUN uv sync --frozen --no-dev --no-compile
 
 # копирование всего кода приложения в докер app/src/
 COPY src/ ./src
-COPY certs/ ./certs
+# COPY certs/ ./certs # переделано чтобы монтировать через docker-compose volume
 
 # подсказывает порт на котором ждет приложение
 EXPOSE 8000

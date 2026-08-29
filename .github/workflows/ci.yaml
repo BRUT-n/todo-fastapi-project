@@ -133,9 +133,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      # Даем вашему FastAPI на сервере 5 секунд, чтобы полностью подняться и связаться с БД
+      # 5 секунд, чтобы полностью подняться и связаться с БД
       - name: Wait for server readiness
         run: sleep 5
 
       - name: Run E2E tests after deploy
-        run: make test_e2e
+        run: make test-e2e
