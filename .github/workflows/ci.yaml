@@ -129,8 +129,12 @@ jobs:
       - name: Create dummy certs for pytest verification
         run: |
           mkdir -p certs
-          touch certs/dummy-private.pem
-          touch certs/dummy-public.pem
+          openssl genpkey -algorithm RSA -out certs/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
+          openssl rsa -pubout -in certs/jwt-private-key.pem -out certs/jwt-public-key.pem
+
+          # mkdir -p certs
+          # touch certs/dummy-private.pem
+          # touch certs/dummy-public.pem
 
       # Установка `uv` через их плагин
       - name: Install uv tool
