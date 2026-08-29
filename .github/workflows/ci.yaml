@@ -125,6 +125,13 @@ jobs:
       - name: Clone code to runner
         uses: actions/checkout@v5
 
+      # ДОБАВЛЯЕМ ЭТОТ ШАГ: Создаем пустые файлы-заглушки, чтобы pytest не ругался при импортах
+      - name: Create dummy certs for pytest verification
+        run: |
+          mkdir -p certs
+          touch certs/dummy-private.pem
+          touch certs/dummy-public.pem
+
       # Установка `uv` через их плагин
       - name: Install uv tool
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
