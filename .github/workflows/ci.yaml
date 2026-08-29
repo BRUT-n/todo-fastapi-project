@@ -79,35 +79,51 @@ jobs:
           make test-auth
           make test-api
 
-  # Джоб: итоговые тесты Е2Е
+  deploy:
+    runs-on: ubuntu-latest
+    needs: unit-and-api-tests
+
+    if: github.ref == 'refs/heads/ci/automated-quality-gate-#8' && github.event_name == 'push'
+    # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Execute deploy commands via SSH
+        uses: appleboy/ssh-action@1.2.5
+        with:
+          host: ${{secrets.VDS_IP}}
+          username: ${{secrets.USER}}
+          key: ${{secrets.SSH_KEY}}
+          port: 22
+          script: |
+            # Переход в каталог с проектом
+            cd /var/www/todo-app/todo-fastapi-project
+
+            # Защита от конфликтов: сбрасываем локальный кэш/изменения перед обновлением
+            git reset --hard HEAD
+
+            # Обновление кода из гит репозитория
+            git pull origin main
+
+            # Сборка контейнера на месте
+            docker compose up -d --build
+
+            # Удаление неиспользуемых докер-образов (старые сборки)
+            docker image prune -f
+
+  # Джоб: итоговые тесты Е2Е на целевом сервере после деплоя
   e2e_tests:
     runs-on: ubuntu-latest
-    needs: [unit-and-api-tests, prepare-artifacts]
+    needs: deploy
 
     # Переменные окружения
     env:
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_USER: brutn
-      DB_PASSWORD: secret_password
-      DB_NAME: todo_app_test_db
-      SECRET_KEY: ci_secret_key_for_jwt_testing
-
       # Магия вложенности Pydantic:auth__имя_переменной
-      auth__JWT_PRIVATE_KEY_PATH: "certs/jwt-private-key.pem"
-      auth__JWT_PUBLIC_KEY_PATH: "certs/jwt-public-key.pem"
-      app__E2E_BASE_URL: "http://127.0.0.1:8000" 
+      app__E2E_BASE_URL: ${{secrets.VDS_IP}} 
 
     steps:
       # код на сервер GitHub через плагин
       - name: Clone code to runner
         uses: actions/checkout@v5
-
-      # загрузка созданных раннее артефактов для работы с ними
-      - name: Download generated certs and env
-        uses: actions/download-artifact@v7
-        with:
-          name: ci-test-artifacts
 
       # Установка `uv` через их плагин
       - name: Install uv tool
@@ -117,13 +133,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      # FastAPI + Postgres в фоне через Docker Compose
-      - name: Start Application Stack
-        run: docker compose up -d --build
-
-      # E2E используя подмененные переменные
-      - name: Run E2E tests
-        run: make test-e2e
+      # Даем вашему FastAPI на сервере 5 секунд, чтобы полностью подняться и связаться с БД
+      - name: Wait for server readiness
+        run: sleep 5
 
       # Очистка томов и погашение контейнера
       - name: Stop Application Stack
