@@ -37,6 +37,13 @@ services:
       - ./certs:/app/certs:ro # Связывает папку certs на сервере с папкой в контейнере (Read-Only) - чтобы не копировать секреты в контейнер
     environment:
       DB__URL: "postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}"
+    healthcheck:
+      # запуск интерпретатора питона, импорт стандартной библиотеки и обращение через нее к хосту (код 0) ИЛИ exit 1
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/docs\")' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
 
 
 # перечисление томов используемых выше. если нет настроек, ставятся по умолчанию
