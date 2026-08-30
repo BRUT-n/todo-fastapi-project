@@ -79,14 +79,60 @@ jobs:
           make test-auth
           make test-api
 
-  deploy:
+  # Джоб: сборка в ЖЦР чтобы пулить с сервера
+  docker-build:
     runs-on: ubuntu-latest
     needs: unit-and-api-tests
+
+    # Права на запись в GitHub Packages
+    permissions:
+      contents: read
+      packages: write
+    steps:
+          - name: Clone code to runner
+            uses: actions/checkout@v5
+
+          - name: Log in to GitHub Container Registry
+            uses: docker/login-action@v4.6.0
+            with:
+              registry: ghcr.io
+              username: ${{ github.actor }}
+              password: ${{ secrets.GITHUB_TOKEN }}
+
+          - name: Build and push Docker image
+            uses: docker/build-push-action@v7.3.0
+            with:
+              context: .
+              push: true
+              tags: |
+                ghcr.io/${{ github.repository }}:latest
+                ghcr.io/${{ github.repository }}:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: docker-build
 
     if: github.ref == 'refs/heads/ci/automated-quality-gate-#8' && github.event_name == 'push'
     # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
+        # клон кода нв виртуалку GitHub, чтобы получить доступ к файлу docker-compose.yml
+      - name: Clone code to the runner
+        uses: actions/checkout@v5
+
+      # копировать docker-compose.yml в проекте из раннера на сервер
+      - name: Copy docker-compose.yml to server via SCP
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{secrets.VDS_IP}}
+          username: ${{secrets.VDS_USER}}
+          key: ${{secrets.SSH_KEY}}
+          port: 22
+          # берет из корня проекта, если надо из папки то писать целевой путь
+          source: "docker-compose.yml"
+          target: "/var/www/todo-app/todo-fastapi-project"
+
+      # 3. Подключаемся по SSH и управляем только Докером (БЕЗ GIT!)
       - name: Execute deploy commands via SSH
         uses: appleboy/ssh-action@v1.2.5
         with:
@@ -95,20 +141,18 @@ jobs:
           key: ${{secrets.SSH_KEY}}
           port: 22
           script: |
-            # Переход в каталог с проектом
             cd /var/www/todo-app/todo-fastapi-project
 
-            # Защита от конфликтов: сбрасываем локальный кэш/изменения перед обновлением
-            git reset --hard HEAD
+            # ИСПРАВЛЕНО: Никаких git reset и git pull! Кода приложения на сервере больше нет.
+            # На сервере лежат только ваши сертификаты ./certs, файл секретов .env и прилетевший по SCP docker-compose.yml
 
-            # Обновление кода из гит репозитория
-            # git pull origin main
-            git pull origin "ci/automated-quality-gate-#8"
+            # Подтягиваем свежесобранный образ из GHCR
+            docker compose pull app
 
-            # Сборка контейнера на месте и ожидание пока он запуститься
-            docker compose up -d --build --wait
+            # Запускаем контейнеры. Инструкция '--wait' подождет ваш healthcheck (успешный ответ от /docs)
+            docker compose up -d --wait
 
-            # Удаление неиспользуемых докер-образов (старые сборки)
+            # Очищаем старые ненужные сборки, чтобы не забивать диск сервера
             docker image prune -f
 
   # Джоб: итоговые тесты Е2Е на целевом сервере после деплоя
@@ -118,15 +162,15 @@ jobs:
 
     # Переменные окружения
     env:
-      # Магия вложенности Pydantic:auth__имя_переменной
-      app__E2E_BASE_URL: http://${{secrets.VDS_IP}}:8000 
+      # Магия вложенности Pydantic:auth__имя_переменной (ПОРТ В ПЕРМЕННУЮ)
+      app__E2E_BASE_URL: http://${{secrets.VDS_IP}}:${{secrets.API_PORT}} 
 
     steps:
       # код на сервер GitHub через плагин
       - name: Clone code to runner
         uses: actions/checkout@v5
 
-      # ДОБАВЛЯЕМ ЭТОТ ШАГ: Создаем пустые файлы-заглушки, чтобы pytest не ругался при импортах
+      # Создаем пустые файлы-заглушки, чтобы pytest не ругался при импортах
       - name: Create dummy certs for pytest verification
         run: |
           mkdir -p certs
@@ -145,7 +189,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      # 5 секунд, чтобы полностью подняться и связаться с БД
+      # 5 секунд, чтобы полностью подняться и связаться с БД  (ЗАМЕНИТЬ НА ХЕЛСЧЕК ПЕРЕД ЗАПУСКОМ ТЕСТОВ Е2Е)
       - name: Wait for server readiness
         run: sleep 5
 

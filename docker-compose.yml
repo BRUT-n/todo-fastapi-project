@@ -24,7 +24,8 @@ services:
       retries: 5
 
   app:
-    build: .
+    # build: . # сборка на месте
+    image: ghcr.io/brut-n/todo-fastapi-project # скачивает из GHCR образ проекта
     container_name: todo_app_container
     ports:
       - "8000:8000"
@@ -32,6 +33,10 @@ services:
       - database
     env_file:
       - .env
+
+    # ДОБАВЛЕНО: Прогоняем миграции через uv, а затем запускаем uvicorn ВЫПОЛНЯЕТСЯ В РАНЕРЕ
+    command: sh -c "uv run alembic upgrade head && uv run uvicorn src.main:app --host 0.0.0.0 --port 8000"
+
     # ДЛЯ БЕЗОПАСНОСТИ КЛЮЧЕЙ
     volumes:
       - ./certs:/app/certs:ro # Связывает папку certs на сервере с папкой в контейнере (Read-Only) - чтобы не копировать секреты в контейнер

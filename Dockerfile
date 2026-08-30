@@ -16,6 +16,10 @@ COPY pyproject.toml uv.lock ./
 # синхронизация пакетов uv без проверки обновлений, запрет на добавление --dev раздела и комп.файлов
 RUN uv sync --frozen --no-dev --no-compile
 
+# копирование файлов для миграций внутрь контейнера
+COPY alembic.ini ./
+COPY alembic/ ./alembic/
+
 # копирование всего кода приложения в докер app/src/
 COPY src/ ./src
 # COPY certs/ ./certs # переделано чтобы монтировать через docker-compose volume
