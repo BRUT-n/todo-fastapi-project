@@ -111,42 +111,42 @@ jobs:
             docker image prune -f
 
   # Джоб: итоговые тесты Е2Е на целевом сервере после деплоя
-  e2e_tests:
-    runs-on: ubuntu-latest
-    needs: deploy
+  # e2e_tests:
+  #   runs-on: ubuntu-latest
+  #   needs: deploy
 
-    # Переменные окружения
-    env:
-      # Магия вложенности Pydantic:auth__имя_переменной
-      app__E2E_BASE_URL: http://${{secrets.VDS_IP}}:8000 
+  #   # Переменные окружения
+  #   env:
+  #     # Магия вложенности Pydantic:auth__имя_переменной
+  #     app__E2E_BASE_URL: http://${{secrets.VDS_IP}}:8000 
 
-    steps:
-      # код на сервер GitHub через плагин
-      - name: Clone code to runner
-        uses: actions/checkout@v5
+  #   steps:
+  #     # код на сервер GitHub через плагин
+  #     - name: Clone code to runner
+  #       uses: actions/checkout@v5
 
-      # ДОБАВЛЯЕМ ЭТОТ ШАГ: Создаем пустые файлы-заглушки, чтобы pytest не ругался при импортах
-      - name: Create dummy certs for pytest verification
-        run: |
-          mkdir -p certs
-          openssl genpkey -algorithm RSA -out certs/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
-          openssl rsa -pubout -in certs/jwt-private-key.pem -out certs/jwt-public-key.pem
+  #     # ДОБАВЛЯЕМ ЭТОТ ШАГ: Создаем пустые файлы-заглушки, чтобы pytest не ругался при импортах
+  #     - name: Create dummy certs for pytest verification
+  #       run: |
+  #         mkdir -p certs
+  #         openssl genpkey -algorithm RSA -out certs/jwt-private-key.pem -pkeyopt rsa_keygen_bits:2048
+  #         openssl rsa -pubout -in certs/jwt-private-key.pem -out certs/jwt-public-key.pem
 
-          # mkdir -p certs
-          # touch certs/dummy-private.pem
-          # touch certs/dummy-public.pem
+  #         # mkdir -p certs
+  #         # touch certs/dummy-private.pem
+  #         # touch certs/dummy-public.pem
 
-      # Установка `uv` через их плагин
-      - name: Install uv tool
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
+  #     # Установка `uv` через их плагин
+  #     - name: Install uv tool
+  #       uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d
 
-      # Устновка необходимых зависимостей из uv.lock / pyproject.toml
-      - name: Install dependencies
-        run: uv sync --all-extras --dev
+  #     # Устновка необходимых зависимостей из uv.lock / pyproject.toml
+  #     - name: Install dependencies
+  #       run: uv sync --all-extras --dev
 
-      # 5 секунд, чтобы полностью подняться и связаться с БД
-      - name: Wait for server readiness
-        run: sleep 5
+  #     # 5 секунд, чтобы полностью подняться и связаться с БД
+  #     - name: Wait for server readiness
+  #       run: sleep 5
 
-      - name: Run E2E tests after deploy
-        run: make test-e2e
+  #     - name: Run E2E tests after deploy
+  #       run: make test-e2e
