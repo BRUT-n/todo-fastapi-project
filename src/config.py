@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class AppSettings(BaseModel):
-    TITLE: str = "Todo List API"
+    TITLE: str = "Todo List Manager API"
     VERSION: str = "1.0.0" # 0.1.0 -> 1.0.0
     DEBUG: bool = False
     # для тестов е2е
