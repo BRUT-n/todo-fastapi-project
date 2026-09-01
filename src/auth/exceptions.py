@@ -64,11 +64,3 @@ class AlreadyRegisteredException(BaseAppException):
 
     def __init__(self):
         super().__init__()
-
-
-class UserNotFoundException(BaseAppException):
-    status_code = status.HTTP_404_NOT_FOUND
-    detail = "Пользователь не найден"
-
-    def __init__(self):
-        super().__init__()

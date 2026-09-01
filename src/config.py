@@ -12,6 +12,9 @@ class AppSettings(BaseModel):
     E2E_BASE_URL: str = "http://127.0.0.1:8000"
 
 
+# TODO: добавить автогенерацию версий приложения
+
+
 class DataBaseSettings(BaseModel):
     URL: str = "postgresql+asyncpg://brutn:brutn@localhost:5432/todo_app_db"
 
