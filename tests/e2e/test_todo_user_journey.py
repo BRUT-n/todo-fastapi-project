@@ -219,9 +219,3 @@ async def test_e2e_full_lifecycle_success(ac_online: httpx.AsyncClient):
         response = await ac_online.delete("/me/profile", headers=auth_e2e_header)
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-
-
-# TODO: добавить хелзчек перед тестами
-# TODO: test_delete_user (e2e_new_username конечное, учитывать при удалении)
-# TODO: реализорвать очистку БД если тесты упадут
-# TODO: docker compose logs app на сервере чтобы посмотреть запуск всего и вся
