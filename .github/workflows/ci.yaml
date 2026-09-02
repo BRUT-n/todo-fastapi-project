@@ -3,7 +3,9 @@ name: CI Quality Gate
 on:
   push:
     branches:
-      - '**' # Запуск при любом пуше в любую ветку
+      # - '**' # Запуск при любом пуше в любую ветку
+      - main
+      - 'ci/**'
   pull_request:
     branches: [ main ] # Запуск при создании PR в ветку main
 
@@ -92,32 +94,12 @@ jobs:
           - name: Clone code to runner
             uses: actions/checkout@v5
 
-          # ИЗМЕНЕНО: Шаг генерации красивой версии (Календарь + номер запуска, например: 26.08.142)
-          - name: Generate Readable Version
-            id: version_gen
-            run: |
-              DATE_PART=$(date +'%y.%m')
-              FULL_VERSION="${DATE_PART}.${{ github.run_number }}"
-              echo "version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-
           - name: Log in to GitHub Container Registry
             uses: docker/login-action@v4.6.0
             with:
               registry: ghcr.io
               username: ${{ github.actor }}
               password: ${{ secrets.GITHUB_TOKEN }}
-
-          # ИЗМЕНЕНО: Добавлено тегирование нашей версией и проброс её внутрь билда Docker
-          - name: Build and push Docker image
-            uses: docker/build-push-action@v7.3.0
-            with:
-              context: .
-              push: true
-              tags: |
-                ghcr.io/brut-n/todo-fastapi-project:latest
-                ghcr.io/brut-n/todo-fastapi-project:${{ steps.version_gen.outputs.version }}
-              build-args: |
-                APP_VERSION=${{ steps.version_gen.outputs.version }}
 
           - name: Build and push Docker image
             uses: docker/build-push-action@v7.3.0
@@ -147,54 +129,32 @@ jobs:
           username: ${{secrets.VDS_USER}}
           key: ${{secrets.SSH_KEY}}
           port: 22
-          # ИЗМЕНЕНО: Передаем сгенерированную версию из джобы docker-build в контекст SSH скрипта
-          envs: IMAGE_TAG
-        vars:
-          IMAGE_TAG: ${{ needs.docker-build.outputs.app_version }}
-        script: |
-          cd /var/www/todo-app/todo-fastapi-project
+          # берет из корня проекта, если надо из папки то писать целевой путь
+          source: "docker-compose.yml"
+          target: "/var/www/todo-app/todo-fastapi-project"
 
-          # На сервере лежат только ваши сертификаты ./certs, файл секретов .env и прилетевший по SCP docker-compose.yml
+      # 3. Подключаемся по SSH и управляем только Докером (БЕЗ GIT!)
+      - name: Execute deploy commands via SSH
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{secrets.VDS_IP}}
+          username: ${{secrets.VDS_USER}}
+          key: ${{secrets.SSH_KEY}}
+          port: 22
+          script: |
+            cd /var/www/todo-app/todo-fastapi-project
 
-          # ИЗМЕНЕНО: Записываем или обновляем IMAGE_TAG в файле .env на сервере
-          touch .env
-          sed -i '/^IMAGE_TAG=/d' .env
-          echo "IMAGE_TAG=${IMAGE_TAG}" >> .env
+            # ИСПРАВЛЕНО: Никаких git reset и git pull! Кода приложения на сервере больше нет.
+            # На сервере лежат только ваши сертификаты ./certs, файл секретов .env и прилетевший по SCP docker-compose.yml
 
-          # Подтягиваем свежесобранный образ из GHCR
-          docker compose pull app
+            # Подтягиваем свежесобранный образ из GHCR
+            docker compose pull app
 
-          # Запускаем контейнеры. Инструкция '--wait' подождет ваш healthcheck (успешный ответ от /docs)
-          docker compose up -d --wait
+            # Запускаем контейнеры. Инструкция '--wait' подождет ваш healthcheck (успешный ответ от /docs)
+            docker compose up -d --wait
 
-          # Очищаем старые ненужные сборки, чтобы не забивать диск сервера
-          docker image prune -f
-      #     # берет из корня проекта, если надо из папки то писать целевой путь
-      #     source: "docker-compose.yml"
-      #     target: "/var/www/todo-app/todo-fastapi-project"
-
-      # # 3. Подключаемся по SSH и управляем только Докером (БЕЗ GIT!)
-      # - name: Execute deploy commands via SSH
-      #   uses: appleboy/ssh-action@v1.2.5
-      #   with:
-      #     host: ${{secrets.VDS_IP}}
-      #     username: ${{secrets.VDS_USER}}
-      #     key: ${{secrets.SSH_KEY}}
-      #     port: 22
-      #     script: |
-      #       cd /var/www/todo-app/todo-fastapi-project
-
-      #       # ИСПРАВЛЕНО: Никаких git reset и git pull! Кода приложения на сервере больше нет.
-      #       # На сервере лежат только ваши сертификаты ./certs, файл секретов .env и прилетевший по SCP docker-compose.yml
-
-      #       # Подтягиваем свежесобранный образ из GHCR
-      #       docker compose pull app
-
-      #       # Запускаем контейнеры. Инструкция '--wait' подождет ваш healthcheck (успешный ответ от /docs)
-      #       docker compose up -d --wait
-
-      #       # Очищаем старые ненужные сборки, чтобы не забивать диск сервера
-      #       docker image prune -f
+            # Очищаем старые ненужные сборки, чтобы не забивать диск сервера
+            docker image prune -f
 
   # Джоб: итоговые тесты Е2Е на целевом сервере после деплоя
   e2e_tests:
