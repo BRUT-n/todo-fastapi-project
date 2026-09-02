@@ -1,17 +1,54 @@
+import tomllib  # парсинг .toml и перевод их в словари (dict).
 from pathlib import Path
 
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+def get_version_from_pyproject() -> str:
+    """
+    Читает актуальную версию напрямую из pyproject.toml.
+    Работает и локально, и внутри Docker-контейнера.
+    """
+    # 1. Path(__file__) берет путь к текущему файлу (config.py).
+    # 2. .resolve() делает путь абсолютным (начиная от корня диска,
+    # например C:/.../src/config.py)
+    # 3. Каждое .parent поднимает нас на одну папку вверх:
+    # 4. / "pyproject.toml" добавляет имя файла к пути.
+    pyproject_path = Path(__file__).resolve().parent / "pyproject.toml"
+
+    try:
+        # Проверяем, существует ли файл по этому пути
+        if pyproject_path.exists():
+
+            # Открываем файл. "rb" значит "read binary" (читать в бинарном режиме).
+            # tomllib требует именно бинарного чтения, исключая проблем кодировок
+            with open(pyproject_path, "rb") as f:
+
+                # tomllib.load(f) читает весь файл и превращает его в Python-словарь.
+                # data будет выглядеть так: {"project":
+                # {"name": "todo-app", "version": "0.1.0"}, ...}
+                data = tomllib.load(f)
+
+                # Идем по словарю. .get("project", {}) ищет ключ "project".
+                # Если не найдет, вернет пустой словарь {}.
+                # Следующий .get("version", "0.1.0-dev") ищет версию.
+                # Если не найдет, вернет "0.1.0-dev" как страховку.
+                return data.get("project", {}).get("version", "0.1.0-dev")
+    except Exception:
+        pass
+
+    return "0.1.0-dev"
+
 class AppSettings(BaseModel):
     TITLE: str = "Todo List Manager API"
-    VERSION: str = "0.1.0"
     DEBUG: bool = False
+    VERSION: str = get_version_from_pyproject()
     # для тестов е2е
     E2E_BASE_URL: str = "http://127.0.0.1:8000"
 
 
+    # VERSION: str = "0.1.0"
 # TODO: добавить автогенерацию версий приложения
 
 

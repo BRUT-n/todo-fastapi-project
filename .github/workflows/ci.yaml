@@ -81,34 +81,97 @@ jobs:
           make test-auth
           make test-api
 
-  # Джоб: сборка в ЖЦР чтобы пулить с сервера
+# НОВЫЙ ДЖОБ: Запускается после тестов
+  release:
+    runs-on: ubuntu-latest
+    needs: unit-and-api-tests # Ждет, пока пройдут тесты. Если тесты упали, релиз не делаем!
+    
+    # Даем GitHub-экшену права на запись (write), чтобы он мог сделать git commit 
+    # с новым pyproject.toml и создать тег в репозитории.
+    permissions:
+      contents: write
+
+    # Выносим результаты этого джоба наружу, чтобы следующий джоб (docker-build) мог их прочитать
+    outputs:
+      new_version: ${{ steps.sr.outputs.version }}
+
+    steps:
+      - name: Clone code to runner
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # ОЧЕНЬ ВАЖНО: по умолчанию качается только 1 коммит. Нам нужна '0' (вся история коммитов), чтобы утилита могла их прочитать и понять, насколько повышать версию.
+
+      # Вызов той самой программы Semantic Release
+      - name: Python Semantic Release Action
+        id: sr # Даем имя шагу, чтобы обращаться к его результатам
+        uses: python-semantic-release/python-semantic-release@v10.6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }} # Стандартный токен GitHub, чтобы бот мог пушить код
+
+# ИЗМЕНЕННЫЙ ДЖОБ: Сборка докера
   docker-build:
     runs-on: ubuntu-latest
-    needs: unit-and-api-tests
+    needs: release # Теперь мы ждем завершения джоба 'release'
 
-    # Права на запись в GitHub Packages
     permissions:
       contents: read
       packages: write
     steps:
-          - name: Clone code to runner
-            uses: actions/checkout@v5
+      - name: Clone code to runner
+        uses: actions/checkout@v5
+        with:
+          # ВАЖНО: Мы клонируем код заново. Зачем ref? 
+          # Джоб release сделал новый коммит в ветку. Если не указать ref, скачается СТАРЫЙ код до релиза.
+          ref: ${{ github.ref }}
 
-          - name: Log in to GitHub Container Registry
-            uses: docker/login-action@v4.6.0
-            with:
-              registry: ghcr.io
-              username: ${{ github.actor }}
-              password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-          - name: Build and push Docker image
-            uses: docker/build-push-action@v7.3.0
-            with:
-              context: .
-              push: true
-              tags: |
-                ghcr.io/brut-n/todo-fastapi-project:latest
-                ghcr.io/brut-n/todo-fastapi-project:${{ github.sha }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v7.3.0
+        with:
+          context: .
+          push: true
+          # Используем версию, которую вычислил джоб release, для тегирования образа
+          tags: |
+            ghcr.io/brut-n/todo-fastapi-project:latest
+            ghcr.io/brut-n/todo-fastapi-project:${{ needs.release.outputs.new_version }}
+            ghcr.io/brut-n/todo-fastapi-project:${{ github.sha }}
+
+
+  # # Джоб: сборка в ЖЦР чтобы пулить с сервера
+  # docker-build:
+  #   runs-on: ubuntu-latest
+  #   needs: unit-and-api-tests
+
+  #   # Права на запись в GitHub Packages
+  #   permissions:
+  #     contents: read
+  #     packages: write
+  #   steps:
+  #         - name: Clone code to runner
+  #           uses: actions/checkout@v5
+
+  #         - name: Log in to GitHub Container Registry
+  #           uses: docker/login-action@v4.6.0
+  #           with:
+  #             registry: ghcr.io
+  #             username: ${{ github.actor }}
+  #             password: ${{ secrets.GITHUB_TOKEN }}
+
+  #         - name: Build and push Docker image
+  #           uses: docker/build-push-action@v7.3.0
+  #           with:
+  #             context: .
+  #             push: true
+  #             tags: |
+  #               ghcr.io/brut-n/todo-fastapi-project:latest
+  #               ghcr.io/brut-n/todo-fastapi-project:${{ github.sha }}
+
   deploy:
     runs-on: ubuntu-latest
     needs: docker-build

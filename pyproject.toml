@@ -21,6 +21,23 @@ dependencies = [
     "uvicorn>=0.40.0",
 ]
 
+# === ⚙️ КОНФИГУРАЦИЯ PYTHON-SEMANTIC-RELEASE ===
+[tool.semantic_release]
+# Указываем формат тега (например, v0.1.0). По умолчанию используется "v{version}"
+tag_format = "v{version}"
+
+# Раздел файлов, в которых нужно автоматизировать замену строки версии
+[tool.semantic_release.version]
+# Утилита сама найдет и обновит версию в pyproject.toml
+version_variables = [
+    "pyproject.toml:version"
+]
+
+# Настройка публикации изменений обратно в репозиторий
+[tool.semantic_release.git_author]
+name = "github-actions[bot]"
+email = "41898282+github-actions[bot]@users.noreply.github.com"
+
 [tool.ruff]
 src = ["src"] # указание исходного кода проетка (пути и импорты)
 line-length = 88 # максимальная длина строки
