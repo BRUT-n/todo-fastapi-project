@@ -5,7 +5,7 @@ on:
     branches:
       # - '**' # Запуск при любом пуше в любую ветку
       - main
-      - 'ci/**'
+      # - 'ci/**'
   pull_request:
     branches: [ main ] # Запуск при создании PR в ветку main
 
@@ -81,37 +81,39 @@ jobs:
           make test-auth
           make test-api
 
-# НОВЫЙ ДЖОБ: Запускается после тестов
+# Джоб: обновить версию приложения через Semantic Release
   release:
     runs-on: ubuntu-latest
-    needs: unit-and-api-tests # Ждет, пока пройдут тесты. Если тесты упали, релиз не делаем!
+    needs: unit-and-api-tests
     
-    # Даем GitHub-экшену права на запись (write), чтобы он мог сделать git commit 
+    # GitHub-экшену права на запись (write), чтобы он мог сделать git commit 
     # с новым pyproject.toml и создать тег в репозитории.
     permissions:
       contents: write
 
-    # Выносим результаты этого джоба наружу, чтобы следующий джоб (docker-build) мог их прочитать
+    # Выносим результаты джоба наружу, чтобы следующий джоб мог их прочитать
     outputs:
       new_version: ${{ steps.sr.outputs.version }}
 
     steps:
       - name: Clone code to runner
         uses: actions/checkout@v5
+        # по умолчанию качается только 1 коммит. Тут нужна '0' (вся история коммитов), 
+        # чтобы утилита могла их прочитать и понять, насколько повышать версию.        
         with:
-          fetch-depth: 0 # ОЧЕНЬ ВАЖНО: по умолчанию качается только 1 коммит. Нам нужна '0' (вся история коммитов), чтобы утилита могла их прочитать и понять, насколько повышать версию.
+          fetch-depth: 0
 
-      # Вызов той самой программы Semantic Release
+      # Вызов Semantic Release
       - name: Python Semantic Release Action
         id: sr # Даем имя шагу, чтобы обращаться к его результатам
         uses: python-semantic-release/python-semantic-release@v10.6.2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }} # Стандартный токен GitHub, чтобы бот мог пушить код
+          github_token: ${{ secrets.GITHUB_TOKEN }} # токен GitHub, чтобы бот мог пушить код
 
 # ИЗМЕНЕННЫЙ ДЖОБ: Сборка докера
   docker-build:
     runs-on: ubuntu-latest
-    needs: release # Теперь мы ждем завершения джоба 'release'
+    needs: release
 
     permissions:
       contents: read
@@ -158,47 +160,6 @@ jobs:
           # Берем готовую строку с тегами из предыдущего шага
           tags: ${{ steps.generate-tags.outputs.tags }}
 
-      # - name: Build and push Docker image
-      #   uses: docker/build-push-action@v7.3.0
-      #   with:
-      #     context: .
-      #     push: true
-      #     # Используем версию, которую вычислил джоб release, для тегирования образа
-      #     tags: |
-      #       ghcr.io/brut-n/todo-fastapi-project:latest
-      #       ghcr.io/brut-n/todo-fastapi-project:${{ needs.release.outputs.new_version }}
-      #       ghcr.io/brut-n/todo-fastapi-project:${{ github.sha }}
-
-
-  # # Джоб: сборка в ЖЦР чтобы пулить с сервера
-  # docker-build:
-  #   runs-on: ubuntu-latest
-  #   needs: unit-and-api-tests
-
-  #   # Права на запись в GitHub Packages
-  #   permissions:
-  #     contents: read
-  #     packages: write
-  #   steps:
-  #         - name: Clone code to runner
-  #           uses: actions/checkout@v5
-
-  #         - name: Log in to GitHub Container Registry
-  #           uses: docker/login-action@v4.6.0
-  #           with:
-  #             registry: ghcr.io
-  #             username: ${{ github.actor }}
-  #             password: ${{ secrets.GITHUB_TOKEN }}
-
-  #         - name: Build and push Docker image
-  #           uses: docker/build-push-action@v7.3.0
-  #           with:
-  #             context: .
-  #             push: true
-  #             tags: |
-  #               ghcr.io/brut-n/todo-fastapi-project:latest
-  #               ghcr.io/brut-n/todo-fastapi-project:${{ github.sha }}
-
   deploy:
     runs-on: ubuntu-latest
     needs: docker-build
@@ -234,13 +195,10 @@ jobs:
           script: |
             cd /var/www/todo-app/todo-fastapi-project
 
-            # ИСПРАВЛЕНО: Никаких git reset и git pull! Кода приложения на сервере больше нет.
-            # На сервере лежат только ваши сертификаты ./certs, файл секретов .env и прилетевший по SCP docker-compose.yml
-
             # Подтягиваем свежесобранный образ из GHCR
             docker compose pull app
 
-            # Запускаем контейнеры. Инструкция '--wait' подождет ваш healthcheck (успешный ответ от /docs)
+            # Запускаем контейнеры. Инструкция '--wait' подождет healthcheck
             docker compose up -d --wait
 
             # Очищаем старые ненужные сборки, чтобы не забивать диск сервера
@@ -253,7 +211,7 @@ jobs:
 
     # Переменные окружения
     env:
-      # Магия вложенности Pydantic:auth__имя_переменной (ПОРТ В ПЕРМЕННУЮ)
+      #  Вложенность Pydantic:auth__имя_переменной (ПОРТ В ПЕРМЕННУЮ)
       app__E2E_BASE_URL: http://${{secrets.VDS_IP}}:${{secrets.API_PORT}} 
 
     steps:
