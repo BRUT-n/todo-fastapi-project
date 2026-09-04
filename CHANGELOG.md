@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.0.2 (2026-09-04)
+
+### Bug Fixes
+
+- App versions
+  ([`a8d4420`](https://github.com/BRUT-n/todo-fastapi-project/commit/a8d44204a0223b09dc33a9c99812c1a80e9e98c1))
+
+
 ## v2.0.1 (2026-09-04)
 
 ### Bug Fixes
