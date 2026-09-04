@@ -15,7 +15,7 @@ def get_version_from_pyproject() -> str:
     # например C:/.../src/config.py)
     # 3. Каждое .parent поднимает нас на одну папку вверх:
     # 4. / "pyproject.toml" добавляет имя файла к пути.
-    pyproject_path = Path(__file__).resolve().parent / "pyproject.toml"
+    pyproject_path = Path(__file__).resolve().parent.parent / "pyproject.toml"
 
     try:
         # Проверяем, существует ли файл по этому пути
