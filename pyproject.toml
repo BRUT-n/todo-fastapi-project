@@ -21,16 +21,15 @@ dependencies = [
     "uvicorn>=0.40.0",
 ]
 
-# === ⚙️ КОНФИГУРАЦИЯ PYTHON-SEMANTIC-RELEASE ===
+# КОНФИГУРАЦИЯ PYTHON-SEMANTIC-RELEASE
 [tool.semantic_release]
 # Указываем формат тега (например, v0.1.0). По умолчанию используется "v{version}"
 tag_format = "v{version}"
 
 # Раздел файлов, в которых нужно автоматизировать замену строки версии
-[tool.semantic_release.version]
 # Утилита сама найдет и обновит версию в pyproject.toml
-version_variables = [
-    "pyproject.toml:version"
+version_toml = [
+    "pyproject.toml:project.version"
 ]
 
 # Настройка публикации изменений обратно в репозиторий

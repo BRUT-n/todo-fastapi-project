@@ -122,7 +122,7 @@ jobs:
       - name: Clone code to runner
         uses: actions/checkout@v5
         with:
-          # ВАЖНО: Мы клонируем код заново.
+          # ВАЖНО: клонируем код заново.
           # Джоб release сделал новый коммит в ветку. 
           # Если не указать ref, скачается СТАРЫЙ код до релиза.
           ref: ${{ github.ref }}
@@ -182,7 +182,7 @@ jobs:
           port: 22
           # берет из корня проекта, если надо из папки то писать целевой путь
           source: "docker-compose.yml"
-          target: "/var/www/todo-app/todo-fastapi-project"
+          target: "/var/www/todo-app"
 
       # 3. Подключаемся по SSH и управляем только Докером (БЕЗ GIT!)
       - name: Execute deploy commands via SSH
