@@ -182,7 +182,7 @@ jobs:
           port: 22
           # берет из корня проекта, если надо из папки то писать целевой путь
           source: "docker-compose.yml"
-          target: "/var/www/todo-app"
+          target: "/var/www/todo-app/"
 
       # 3. Подключаемся по SSH и управляем только Докером (БЕЗ GIT!)
       - name: Execute deploy commands via SSH
@@ -193,7 +193,7 @@ jobs:
           key: ${{secrets.SSH_KEY}}
           port: 22
           script: |
-            cd /var/www/todo-app/todo-fastapi-project
+            cd /var/www/todo-app/
 
             # Подтягиваем свежесобранный образ из GHCR
             docker compose pull app
