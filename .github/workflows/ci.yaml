@@ -4,9 +4,9 @@ on:
   push:
     branches:
       # - '**' # Запуск при любом пуше в любую ветку
-      # - main
+      - main
       # - 'ci/**'
-      - 'chore/**'
+      # - 'chore/**'
   pull_request:
     branches: [ main ] # Запуск при создании PR в ветку main
 
@@ -174,7 +174,7 @@ jobs:
         uses: actions/checkout@v5
 
       # копировать docker-compose.yml в проекте из раннера на сервер
-      - name: Copy docker-compose.yml to server via SCP
+      - name: Copy deploy files to server via SCP
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{secrets.VDS_IP}}
