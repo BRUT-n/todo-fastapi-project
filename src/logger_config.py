@@ -1,6 +1,6 @@
 import logging.config
 import sys
-from logging import Formatter, StreamHandler, getLogger
+from logging import Formatter, StreamHandler
 
 from pythonjsonlogger.json import JsonFormatter
 
@@ -15,7 +15,9 @@ def setup_logging():
     # 1. Определяем конфигурацию форматтера в зависимости от окружения
     if env == Environment.LOCAL:
         formatter_config = {
-            "format": "[%(asctime)s.%(msecs)03d] %(name)-25s [%(levelname)-7s] - %(message)s",
+            "format": (
+                "[%(asctime)s.%(msecs)03d] %(name)-25s [%(levelname)-7s] - %(message)s"
+            ),
             "datefmt": "%Y-%m-%d %H:%M:%S",
         }
         formatter_class = Formatter
@@ -33,9 +35,9 @@ def setup_logging():
             "rename_fields": {
                 "asctime": "timestamp_utc",
                 "levelname": "level",
-                "name": "logger"
+                "name": "logger",
             },
-            "json_ensure_ascii": False
+            "json_ensure_ascii": False,
         }
 
     # 2. Собираем единый конфиг для всей системы
@@ -46,13 +48,13 @@ def setup_logging():
         "formatters": {
             "target_format": {
                 "()": formatter_class,  # Динамически подставляем класс форматтера
-                **formatter_config      # распаковка настройки форматтера
+                **formatter_config,  # распаковка настройки форматтера
             }
         },
         "handlers": {
             "console": {
                 "class": StreamHandler,
-                "stream": sys.stdout, # Безопасное указание stdout для dictConfig
+                "stream": sys.stdout,  # Безопасное указание stdout для dictConfig
                 "formatter": "target_format",
                 "level": log_level,
             }
@@ -76,7 +78,7 @@ def setup_logging():
             },
             "uvicorn.access": {
                 "handlers": ["console"],
-                "level": log_level, # можно "WARNING" чтобы не засорять логи
+                "level": log_level,  # можно "WARNING" чтобы не засорять логи
                 "propagate": False,
             },
             # Перехватываем SQLAlchemy
@@ -85,12 +87,11 @@ def setup_logging():
                 "level": log_level,
                 "propagate": False,
             },
-        }
+        },
     }
 
     # 3. Применяем конфигурацию один раз для всего приложения
     logging.config.dictConfig(LOGGING_CONFIG)
-
 
 
 # def setup_logging():
@@ -106,7 +107,8 @@ def setup_logging():
 #     if settings.app.ENVIRONMENT == Environment.LOCAL:
 #         # лкоально - удобный текстовый формат
 #         formatter = Formatter(
-#             fmt="[%(asctime)s.%(msecs)03d] %(name)-25s [%(levelname)-7s] - %(message)s",
+#             fmt="[%(asctime)s.%(msecs)03d]
+#               %(name)-25s [%(levelname)-7s] - %(message)s",
 #             datefmt="%Y-%m-%d %H:%M:%S"
 #         )
 #     elif settings.app.ENVIRONMENT == Environment.TEST:

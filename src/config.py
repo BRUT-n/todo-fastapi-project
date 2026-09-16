@@ -22,11 +22,9 @@ def get_version_from_pyproject() -> str:
     try:
         # Проверяем, существует ли файл по этому пути
         if pyproject_path.exists():
-
             # Открываем файл. "rb" значит "read binary" (читать в бинарном режиме).
             # tomllib требует именно бинарного чтения, исключая проблем кодировок
             with open(pyproject_path, "rb") as f:
-
                 # tomllib.load(f) читает весь файл и превращает его в Python-словарь.
                 # data будет выглядеть так: {"project":
                 # {"name": "todo-app", "version": "0.1.0"}, ...}
@@ -48,6 +46,7 @@ class Environment(StrEnum):
     TEST = "test"
     DEV = "dev"
 
+
 class AppSettings(BaseModel):
     TITLE: str = "Todo List Manager API"
     DEBUG: bool = False
@@ -55,7 +54,7 @@ class AppSettings(BaseModel):
     # для тестов е2е
     E2E_BASE_URL: str = "http://127.0.0.1:8000"
     ENVIRONMENT: Environment = Environment.LOCAL
-    EXPLICIT_LOG_LEVEL: str | None = None # можно задать в pyproject
+    EXPLICIT_LOG_LEVEL: str | None = None  # можно задать в pyproject
 
     @property
     def LOG_LEVEL(self) -> str:
@@ -74,7 +73,7 @@ class AppSettings(BaseModel):
 class DataBaseSettings(BaseModel):
     URL: str = "postgresql+asyncpg://brutn:brutn@localhost:5432/todo_app_db"
     # базовое поле для возможности принудительного включения/выключения
-    EXPLICIT_ECHO: bool | None = None # можно задать в pyproject
+    EXPLICIT_ECHO: bool | None = None  # можно задать в pyproject
 
 
 class AuthSettings(BaseModel):
@@ -112,4 +111,4 @@ logger = logging.getLogger(__name__)
 logger.info("DEBUG MODE IS: %s", settings.app.DEBUG)
 logger.info("APP ENV IS: %s", settings.app.ENVIRONMENT)
 logger.info("DATABASE URL IS: %s", settings.db.URL)
-logger.info("TITLE IS: %s" , settings.app.TITLE)
+logger.info("TITLE IS: %s", settings.app.TITLE)

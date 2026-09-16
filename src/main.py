@@ -6,7 +6,11 @@ from src.api.routers import all_router
 from src.config import settings
 from src.database.config import Base, engine
 from src.logger_config import setup_logging
-from src.middleware import log_new_request, add_process_time_to_requests, observability_middleware, metrics_asgi_app
+from src.middleware import (
+    metrics_asgi_app,
+    observability_middleware,
+)
+
 
 # 1. Декоратор превращает функцию в "контекстный менеджер"
 @asynccontextmanager

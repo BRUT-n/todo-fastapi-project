@@ -6,11 +6,10 @@ from fastapi import Request, status
 from fastapi.responses import StreamingResponse
 from prometheus_client import Counter, Histogram, make_asgi_app
 
-
 HTTP_REQUESTS_TOTAL = Counter(
     "http_requests_total",
     "Total number of HTTP requests",
-    labelnames=["method", "route", "status_code"]
+    labelnames=["method", "route", "status_code"],
 )
 
 HTTP_REQUEST_DURATION_SECONDS = Histogram(
@@ -19,18 +18,17 @@ HTTP_REQUEST_DURATION_SECONDS = Histogram(
     labelnames=["method", "route", "status_code"],
     # Бакеты (buckets) — это "корзины" для сортировки времени в секундах.
     # Если запрос шел 0.08 сек, он попадет в корзину <= 0.1, <= 0.25 и т.д.
-    buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0)
+    buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
 )
 
 logger = logging.getLogger(__name__)
 
 
 async def observability_middleware(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[StreamingResponse]]
+    request: Request, call_next: Callable[[Request], Awaitable[StreamingResponse]]
 ) -> StreamingResponse:
     start_time = time.perf_counter()
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR # Дефолтное значение
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR  # Дефолтное значение
     try:
         response = await call_next(request)
         status_code = response.status_code
@@ -56,17 +54,16 @@ async def observability_middleware(
         metric_labels = {
             "method": request.method,
             "route": route_path,
-            "status_code": str(status_code)
+            "status_code": str(status_code),
         }
 
         # Выбираем конкретную метрику с нашими тегами (.labels(**metric_labels))
         # и увеличиваем счетчик на 1 (.inc())
         HTTP_REQUESTS_TOTAL.labels(**metric_labels).inc()
 
-        # Выбираем гистограмму времени и передаем туда замер скорости (.observe(process_time))
+        # в гистограмму времени передаем замер скорости (.observe(process_time))
         # Библиотека сама разложит это время в нужную "корзину" (bucket)
         HTTP_REQUEST_DURATION_SECONDS.labels(**metric_labels).observe(process_time)
-
 
         # Один чистый лог. Для OpenObserve лучше передавать
         # параметры структурированно через extra, а не в одну строку
@@ -78,10 +75,10 @@ async def observability_middleware(
             extra={
                 "http_method": request.method,
                 "http_path": request.url.path,
-                "route_template": route_path, # поле для Prometheus
+                "route_template": route_path,  # поле для Prometheus
                 "status_code": status_code,
-                "duration_sec": round(process_time, 4)
-            }
+                "duration_sec": round(process_time, 4),
+            },
         )
 
 
@@ -91,10 +88,8 @@ async def observability_middleware(
 metrics_asgi_app = make_asgi_app()
 
 
-
 async def add_process_time_to_requests(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[StreamingResponse]]
+    request: Request, call_next: Callable[[Request], Awaitable[StreamingResponse]]
 ) -> StreamingResponse:
     start_time = time.perf_counter()
     response = await call_next(request)
@@ -104,13 +99,12 @@ async def add_process_time_to_requests(
 
 
 async def log_new_request(
-    request: Request,
-    call_next: Callable[[Request], Awaitable[StreamingResponse]]
+    request: Request, call_next: Callable[[Request], Awaitable[StreamingResponse]]
 ) -> StreamingResponse:
     logger.info(
         "Request %s to %s",
-         request.method,
+        request.method,
         # request.url,
-        request.url.path
+        request.url.path,
     )
     return await call_next(request)
