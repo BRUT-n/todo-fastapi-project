@@ -176,3 +176,4 @@ learning/
 htmlcov/
 notes.md
 .ruff_cache/
+docker-compose.override.yml

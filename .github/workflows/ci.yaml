@@ -4,8 +4,9 @@ on:
   push:
     branches:
       # - '**' # Запуск при любом пуше в любую ветку
-      - main
+      # - main
       # - 'ci/**'
+      - 'chore/**'
   pull_request:
     branches: [ main ] # Запуск при создании PR в ветку main
 
@@ -181,7 +182,7 @@ jobs:
           key: ${{secrets.SSH_KEY}}
           port: 22
           # берет из корня проекта, если надо из папки то писать целевой путь
-          source: "docker-compose.yml"
+          source: "docker-compose.yml, prometheus.yml, vector.toml"
           target: "/var/www/todo-app/"
 
       # 3. Подключаемся по SSH и управляем только Докером (БЕЗ GIT!)

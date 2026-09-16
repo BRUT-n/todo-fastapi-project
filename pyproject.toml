@@ -11,9 +11,11 @@ dependencies = [
     "bcrypt>=5.0.0",
     "fastapi>=0.128.0",
     "numpy>=2.4.1",
+    "prometheus-client>=0.26.0",
     "pydantic-settings>=2.14.1",
     "pydantic[email]>=2.12.5",
     "pyjwt[crypto]>=2.11.0",
+    "python-json-logger>=4.2.0",
     "python-multipart>=0.0.22",
     "sqlalchemy>=2.0.46",
     "sqlalchemy-orm>=1.2.10",
@@ -92,19 +94,26 @@ dev = [
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",
+    "pytest-env>=1.7.1",
     "ruff>=0.16.4",
     "testcontainers[postgres]>=4.14.2",
 ]
 
 [tool.pytest.ini_options]
-# 1. Где искать исходный код проекта
+# Где искать исходный код проекта
 pythonpath = ["."]
-
-# указывает где искать тесты
+# Где искать тесты
 testpaths = ["tests"]
-
-# 2. Как обрабатывать асинхронные тесты
+# Как обрабатывать асинхронные тесты
 asyncio_mode = "auto"
-
-# 3. Время жизни цикла событий по умолчанию
+# Время жизни цикла событий по умолчанию
 asyncio_default_fixture_loop_scope = "session"
+
+env = [
+    "APP__ENVIRONMENT=test",
+]
+
+log_cli = false # true = выводить логи LIVE прямо во время прогона тестов
+log_cli_level = "INFO" # Уровень логов для live-вывода
+log_cli_format = "%(levelname)s %(message)s" # Формат live-вывода
+# uv run pytest -o log_cli=true --log-cli-level=DEBUG - принудительно полные логи

@@ -1,0 +1,62 @@
+# 1. ИСТОЧНИК: Читаем логи из Docker
+[sources.docker_logs]
+type = "docker_logs"
+include_containers = ["todo_app_container"] # Слушаем только наш контейнер приложения
+
+# 2. ТРАНСФОРМАЦИЯ: Парсим строки в честный JSON
+[transforms.parse_json]
+type = "remap"
+inputs = ["docker_logs"]
+source = """
+# 1. Проверяем, что лог пришел в формате JSON
+parsed, err = parse_json(string!(.message))
+
+if err == null {
+    # 2. Сохраняем текстовое сообщение во временную переменную
+    app_message = parsed.message
+
+    # 3. Безопасно вливаем ВСЕ поля из parsed в корень лога.
+    # Используем 'merge', чтобы при конфликте типов Vector не дропал лог.
+    ., merge_err = merge(., parsed)
+
+    if merge_err == null {
+        # 4. Возвращаем человекочитаемый текст в поле .message
+        if app_message != null {
+            .message = app_message
+        }
+    } else {
+        .parse_error = "Merge failed: " + string!(merge_err)
+    }
+} else {
+    # Если прилетит обычный текст (например, от других контейнеров), оставляем как есть
+    .parse_error = "Not a JSON: " + string!(err)
+}
+"""
+
+# --- ОТЛАДКА ---
+# source = """
+# parsed, err = parse_json(string!(.message))
+
+# if err == null {
+#     # 1. Сохраняем чистый текст сообщения из JSON, как он есть внутри
+#     .debug_parsed_message = parsed.message
+    
+#     # 2. А сюда сохраняем ВЕСЬ распарсенный JSON целиком в виде строки (текста),
+#     # чтобы вы увидели в OpenObserve абсолютно все пришедшие поля в сыром виде
+#     .debug_full_raw_json = encode_json(parsed)
+# } else {
+#     .parse_error = err
+# }
+# """
+
+# 3. НАЗНАЧЕНИЕ: Отправляем очищенные данные в OpenObserve
+[sinks.openobserve]
+type = "http"
+inputs = ["parse_json"]
+uri = "http://openobserve:5080/api/default/todo_stream/_json"
+method = "post"
+auth.strategy = "basic"
+auth.user = "admin@example.com"
+auth.password = "Notification123"
+compression = "gzip"
+encoding.codec = "json"

@@ -41,16 +41,91 @@ services:
     volumes:
       - ./certs:/app/certs:ro # Связывает папку certs на сервере с папкой в контейнере (Read-Only) - чтобы не копировать секреты в контейнер
     environment:
+      APP__ENVIRONMENT: "${APP__ENVIRONMENT:-dev}" # если в .env нет, то ставит dev
       DB__URL: "postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}"
     healthcheck:
       # запуск интерпретатора питона, импорт стандартной библиотеки и обращение через нее к хосту (код 0) ИЛИ exit 1
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/docs\")' || exit 1"]
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/healthcheck\")' || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 3
       start_period: 5s
 
 
+    # НАСТРОЙКА ЛОГОВ ДЛЯ APP: Даем контейнеру тег, чтобы Vector его узнал
+    logging:
+      driver: "json-file"
+      options:
+        tag: "todo-fastapi"
+
+  # 3. Сервер OpenObserve
+  openobserve:
+    image: public.ecr.aws/zinclabs/openobserve:v0.10.0
+    container_name: todo_app_openobserve
+    ports:
+      - "5080:5080"
+    environment:
+      - ZO_ROOT_USER_EMAIL=admin@example.com   # Логин для входа в панель
+      - ZO_ROOT_USER_PASSWORD=Notification123 # Пароль (минимум 8 знаков)
+      - ZO_DATA_DIR=/data
+    volumes:
+      - openobserve_data:/data
+    restart: always
+
+  # 4. Агент-сборщик Vector
+  vector:
+    image: timberio/vector:0.35.0-alpine
+    container_name: todo_app_vector
+    user: "root"
+    depends_on:
+      - openobserve
+    volumes:
+      # Подключаем конфигурацию вектора
+      - ./vector.toml:/etc/vector/vector.toml:ro
+      # Читаем системные логи всех докер-контейнеров на хосте
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # Доступ к сокету докера, чтобы читать метаданные (имена контейнеров)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # принудительный конфиг пути для файла вектора
+    command: --config /etc/vector/vector.toml
+    restart: always
+
+  # Сервер Prometheus (Сборщик и база данных метрик)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: todo_app_prometheus
+    restart: always
+    depends_on:
+      - app # Запускаемся только после того, как поднялось приложение
+    volumes:
+      # Прокидываем созданный на Шаге 1 конфиг в режиме Read-Only
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Сохраняем базу данных метрик в изолированном томе Docker
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090" # Порт для веб-панели Prometheus
+
+
+  # 6. Панель визуализации Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: todo_app_grafana
+    restart: always
+    depends_on:
+      - prometheus # Запускаемся только после того, как поднялся Prometheus
+    volumes:
+      # Сохраняем настройки дашбордов и пользователей в изолированном томе
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000" # Пробрасываем стандартный порт Grafana наружу
+
+
 # перечисление томов используемых выше. если нет настроек, ставятся по умолчанию
 volumes:
   postgres_data:
+  openobserve_data: # Том для сохранения логов самого OpenObserve
+  prometheus_data: # <- ДОБАВИЛИ новый том для хранения метрик
+  grafana_data:

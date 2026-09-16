@@ -1,4 +1,6 @@
+import logging
 import tomllib  # парсинг .toml и перевод их в словари (dict).
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -40,20 +42,39 @@ def get_version_from_pyproject() -> str:
 
     return "0.1.0-dev"
 
+
+class Environment(StrEnum):
+    LOCAL = "local"
+    TEST = "test"
+    DEV = "dev"
+
 class AppSettings(BaseModel):
     TITLE: str = "Todo List Manager API"
     DEBUG: bool = False
     VERSION: str = get_version_from_pyproject()
     # для тестов е2е
     E2E_BASE_URL: str = "http://127.0.0.1:8000"
+    ENVIRONMENT: Environment = Environment.LOCAL
+    EXPLICIT_LOG_LEVEL: str | None = None # можно задать в pyproject
 
+    @property
+    def LOG_LEVEL(self) -> str:
+        if self.EXPLICIT_LOG_LEVEL is not None:
+            return self.EXPLICIT_LOG_LEVEL
 
-    # VERSION: str = "0.1.0"
-# TODO: добавить автогенерацию версий приложения
+        match self.ENVIRONMENT:
+            case Environment.LOCAL:
+                return "DEBUG"
+            case Environment.TEST:
+                return "WARNING"
+            case Environment.DEV:
+                return "INFO"
 
 
 class DataBaseSettings(BaseModel):
     URL: str = "postgresql+asyncpg://brutn:brutn@localhost:5432/todo_app_db"
+    # базовое поле для возможности принудительного включения/выключения
+    EXPLICIT_ECHO: bool | None = None # можно задать в pyproject
 
 
 class AuthSettings(BaseModel):
@@ -69,6 +90,13 @@ class Settings(BaseSettings):
     db: DataBaseSettings = DataBaseSettings()
     auth: AuthSettings = AuthSettings()
 
+    # Свойство верхнего уровня для удобного доступа к db_echo
+    @property
+    def DB_ECHO(self) -> bool:
+        if self.db.EXPLICIT_ECHO is not None:
+            return self.db.EXPLICIT_ECHO
+        return self.app.ENVIRONMENT == Environment.LOCAL
+
     model_config = SettingsConfigDict(
         env_file=".env", env_nested_delimiter="__", extra="ignore"
     )
@@ -77,6 +105,11 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-print(f"DEBUG MODE IS: {settings.app.DEBUG}")
-print(f"DATABASE URL IS: {settings.db.URL}")
-print(f"TITLE IS: {settings.app.TITLE}")
+# print(f"DEBUG MODE IS: {settings.app.DEBUG}")
+# print(f"DATABASE URL IS: {settings.db.URL}")
+# print(f"TITLE IS: {settings.app.TITLE}")
+logger = logging.getLogger(__name__)
+logger.info("DEBUG MODE IS: %s", settings.app.DEBUG)
+logger.info("APP ENV IS: %s", settings.app.ENVIRONMENT)
+logger.info("DATABASE URL IS: %s", settings.db.URL)
+logger.info("TITLE IS: %s" , settings.app.TITLE)

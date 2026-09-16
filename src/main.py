@@ -5,7 +5,8 @@ from fastapi import FastAPI
 from src.api.routers import all_router
 from src.config import settings
 from src.database.config import Base, engine
-
+from src.logger_config import setup_logging
+from src.middleware import log_new_request, add_process_time_to_requests, observability_middleware, metrics_asgi_app
 
 # 1. Декоратор превращает функцию в "контекстный менеджер"
 @asynccontextmanager
@@ -29,4 +30,14 @@ app = FastAPI(
     debug=settings.app.DEBUG,
 )
 
+# Инициализируем логи по правилам окружения
+setup_logging()
+
+app.middleware("http")(observability_middleware)
+# app.middleware("http")(log_new_request)
+# app.middleware("http")(add_process_time_to_requests)
+
 app.include_router(all_router)
+# .mount() метод FastAPI, позволяет "вмонтировать" другое ASGI-приложение внутрь вашего.
+# при переходе на URL "/metrics", FastAPI передаст управление библиотеке Prometheus.
+app.mount("/metrics", metrics_asgi_app)

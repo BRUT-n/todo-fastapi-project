@@ -26,12 +26,12 @@ app-start:
 	PYTHONPATH=$(PYTHONPATH) uv run uvicorn src.main:app --reload
 
 run: db-start app-start
-	@echo "Запуск приложения в связке с контейнером"
+	@echo "Запуск приложения локально в связке с контейнером PostgreSQL"
 
 stop: db-stop
 
 docker-app-run:
-	@echo "Сборка и запуск БД и приложения в изолированных контейнерах"
+	@echo "Сборка и запуск БД и приложения в изолированных контейнерах с мониторингом"
 	docker compose up --build
 
 docker-app-stop:
