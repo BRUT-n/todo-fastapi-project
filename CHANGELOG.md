@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v2.0.4 (2026-09-16)
+
+### Bug Fixes
+
+- Delete test database
+  ([`e5303b8`](https://github.com/BRUT-n/todo-fastapi-project/commit/e5303b84360053d92a0c8f5af54b7d5f50542385))
+
+### Chores
+
+- Add logging and observability, closes #20
+  ([`1449dab`](https://github.com/BRUT-n/todo-fastapi-project/commit/1449dab4a6b3316ce5262df737249bb345824ec5))
+
+- Add logging and observability, closes #20
+  ([`0d291bc`](https://github.com/BRUT-n/todo-fastapi-project/commit/0d291bce2c3953402e9577c679a0a96cf86526ef))
+
+- Add logging and observability, closes #20
+  ([`10d0030`](https://github.com/BRUT-n/todo-fastapi-project/commit/10d00302ecb02c09f8dcd918f57635aaa150936d))
+
+
 ## v2.0.3 (2026-09-04)
 
 ### Bug Fixes
