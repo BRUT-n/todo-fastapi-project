@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: todo-postgres-deployment
+  name: todo-postgres-deployment
+  namespace: todo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-postgres-deployment
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: todo-postgres-deployment
+    spec:
+      containers:
+      - image: postgres:17-alpine
+        name: postgres
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "brutn"
+        - name: POSTGRES_USER
+          value: "brutn"
+        - name: POSTGRES_DB
+          value: "todo_app_db"        
+        resources: {}
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: todo-postgres-deployment
+  name: todo-postgres-service
+  namespace: todo-app
+spec:
+  ports:
+  - port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: todo-postgres-deployment
+status:
+  loadBalancer: {}

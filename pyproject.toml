@@ -91,6 +91,7 @@ dev = [
     "datetime>=6.0",
     "freezegun>=1.5.5",
     "httpx>=0.28.1",
+    "locust>=2.46.6",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.1.0",

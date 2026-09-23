@@ -1,0 +1,4 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todo-app # Имя нового кастомного пространства имен

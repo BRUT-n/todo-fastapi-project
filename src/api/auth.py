@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, status
 
 from src.auth import utils as auth_utils
 from src.auth.dependencies import (
-    get_user_status_by_token,
     register_user,
     validate_credentials,
 )
@@ -48,13 +47,3 @@ async def login_for_access_token(
     token = auth_utils.encode_jwt_token(jwt_payload)
 
     return TokenInfo(access_token=token, token_type="Bearer")
-
-
-@router.get(
-    "/me",
-    summary="Данные пользователя",
-    response_model=UserReadSchema,
-    status_code=status.HTTP_200_OK,
-)
-async def get_me(user: UserReadSchema = Depends(get_user_status_by_token)):
-    return user

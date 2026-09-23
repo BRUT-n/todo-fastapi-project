@@ -13,6 +13,16 @@ from src.models.schemas import (
 router = APIRouter(prefix="/me", tags=["Личный кабинет"])
 
 
+@router.get(
+    "",
+    summary="Данные пользователя",
+    response_model=UserReadSchema,
+    status_code=status.HTTP_200_OK,
+)
+async def get_me(user: UserReadSchema = Depends(get_user_status_by_token)):
+    return user
+
+
 @router.patch(
     "/profile",
     summary="Редактировать имя или почту",
