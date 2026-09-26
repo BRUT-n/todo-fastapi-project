@@ -31,9 +31,10 @@ spec:
             memory: "256Mi"         # потолок RAM, при превышении — OOMKilled
 
         # --- НАСТРОЙКА LIVENESS PROBE (ЖИВУЧЕСТЬ) ---
+        # проверка что приложение доступно
         livenessProbe:
           httpGet:
-            path: /healthcheck      # эндпоинт из FastAPI
+            path: /healthcheck/live      # эндпоинт из FastAPI
             port: 8000              # Порт приложения
           initialDelaySeconds: 10   # ждать 10 сек после старта
           periodSeconds: 30         # проверка каждые 30 секунд
@@ -41,11 +42,12 @@ spec:
           failureThreshold: 3       # после 3 неудач, K8s перезапустит Под
 
         # --- НАСТРОЙКА READINESS PROBE (ГОТОВНОСТЬ К ТРАФИКУ) ---
+        # проверка что база доступна
         readinessProbe:
           httpGet:
-            path: /healthcheck      # эндпоинт на готовность к БД
+            path: /healthcheck/ready      # эндпоинт на готовность к БД
             port: 8000
-          initialDelaySeconds: 5    # Первая проверка через 5 сек
+          initialDelaySeconds: 12    # Первая проверка через 12 сек
           periodSeconds: 10         # проверки каждые 10 сек
           timeoutSeconds: 3         # Время ожидания ответа — 3 секунды
           failureThreshold: 3       # Если 3 раза упало — убираем Под из маршрутизации Сервиса

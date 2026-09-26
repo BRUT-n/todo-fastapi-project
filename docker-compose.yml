@@ -45,7 +45,7 @@ services:
       DB__URL: "postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}"
     healthcheck:
       # запуск интерпретатора питона, импорт стандартной библиотеки и обращение через нее к хосту (код 0) ИЛИ exit 1
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/healthcheck\")' || exit 1"]
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/healthcheck/live\")' || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 3

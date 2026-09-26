@@ -34,7 +34,7 @@ class AppUser(HttpUser):
 
     @task(2)  # вес задачи (как часто вызывать в отношении общего веса всех задач)
     def check_health(self):
-        self.client.get("/healthcheck")
+        self.client.get("/healthcheck/ready")
 
     @task(3)
     def user_full_workflow(self):

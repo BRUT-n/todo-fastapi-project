@@ -6,12 +6,22 @@ router = APIRouter(prefix="/healthcheck", tags=["Healthcheck"])
 
 
 @router.get(
-    "",
+    "/live",
+    status_code=status.HTTP_200_OK,
+    summary="Проверка доступности приложения",
+    response_model=dict,
+)
+async def liveness_check():
+    return {"status": "alive"}
+
+
+@router.get(
+    "/ready",
     status_code=status.HTTP_200_OK,
     summary="Проверка доступности базы данных",
     response_model=dict,
 )
-async def healthcheck():
+async def readiness_check():
     is_available = await check_db_connection()
 
     if not is_available:
@@ -20,4 +30,4 @@ async def healthcheck():
             detail="База данных недоступна",
         )
 
-    return {"status": "ok"}
+    return {"status": "ready"}

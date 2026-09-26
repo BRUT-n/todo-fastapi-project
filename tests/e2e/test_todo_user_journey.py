@@ -11,7 +11,7 @@ NUM_OF_TASKS_TO_CREATE = 7
 @pytest.mark.asyncio(loop_scope="session")
 async def test_healthcheck_before_e2e(ac_online: httpx.AsyncClient):
     """Проверка доступности базы данных и тест работы /healthcheck."""
-    response = await ac_online.get("/healthcheck")
+    response = await ac_online.get("/healthcheck/ready")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {"status": "ok"}
