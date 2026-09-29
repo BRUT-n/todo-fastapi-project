@@ -17,10 +17,8 @@ spec:
         app: todo-app-deployment
     spec:
       containers:
-      - image: todo-fastapi:1.0.0
+      - image: todo-fastapi:2.0.0
         name: todo-app
-        resources: {}
-
         # --- НАСТРОЙКА РЕСУРСОВ И ЛИМИТОВ ---
         resources:
           requests:
@@ -55,10 +53,13 @@ spec:
         envFrom:
         - configMapRef:
             name: todo-env-config
-        # ПЕРЕОПРЕДЕЛЕНИЕ ВНУТРИ КУБЕРА
+        # ПЕРЕОПРЕДЕЛЕНИЕ ВНУТРИ КУБЕРА ЧЕРЕЗ СЕКРЕТЫ
         env:
         - name: DB__URL
-          value: "postgresql+asyncpg://brutn:brutn@todo-postgres-service:5432/todo_app_db"
+          valueFrom:
+            secretKeyRef:
+              name: todo-shared-secrets
+              key: DB__URL
         # КУДА ВНУТРИ КОНТЕЙНЕРА ПОЛОЖИТЬ КЛЮЧИ
         volumeMounts:
         - name: certs-volume
@@ -68,5 +69,5 @@ spec:
       volumes:
       - name: certs-volume
         secret:
-         secretName: todo-certs-secret
+          secretName: todo-certs-secret
 status: {}

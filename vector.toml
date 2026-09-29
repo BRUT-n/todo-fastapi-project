@@ -53,10 +53,10 @@ if err == null {
 [sinks.openobserve]
 type = "http"
 inputs = ["parse_json"]
-uri = "http://openobserve:5080/api/default/todo_stream/_json"
+uri = "${OPENOBSERVE_URI}"
 method = "post"
 auth.strategy = "basic"
-auth.user = "admin@example.com"
-auth.password = "Notification123"
+auth.user = "${OPENOBSERVE_USER}"
+auth.password = "${OPENOBSERVE_PASSWORD}"
 compression = "gzip"
 encoding.codec = "json"

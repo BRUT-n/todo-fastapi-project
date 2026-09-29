@@ -21,11 +21,20 @@ spec:
         name: postgres
         env:
         - name: POSTGRES_PASSWORD
-          value: "brutn"
+          valueFrom:
+            secretKeyRef: # СЕКРЕТЫ ХРАНЯТЬСЯ ОТДЕЛЬНО
+              name: todo-shared-secrets
+              key: POSTGRES_PASSWORD
         - name: POSTGRES_USER
-          value: "brutn"
+          valueFrom:
+            secretKeyRef:
+              name: todo-shared-secrets
+              key: POSTGRES_USER
         - name: POSTGRES_DB
-          value: "todo_app_db"        
+          valueFrom:
+            secretKeyRef:
+              name: todo-shared-secrets
+              key: POSTGRES_DB
         resources: {}
 status: {}
 ---
